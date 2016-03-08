@@ -1,4 +1,8 @@
-parser : lex.yy.c y.tab.c
+compiler:  lex.yy.c y.tab.c
+	gcc -o compiler y.tab.c lex.yy.c -lfl
+
+parser : lex.yy.c
+	bison -v -d --file-prefix=y parser_mini_l.y
 	gcc -o parser y.tab.c lex.yy.c -lfl
 
 lex.yy.c : mini_l.lex
