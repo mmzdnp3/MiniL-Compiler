@@ -7,3 +7,4 @@ y.tab.h
 y.output
 
 *.backup
+temp*
