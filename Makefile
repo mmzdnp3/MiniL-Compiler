@@ -8,7 +8,7 @@ y.tab.c : mini_l.y
 	bison -v -d --file-prefix=y mini_l.y
 
 clean : 
-	rm -r parser lex.yy.c y.output y.tab.h y.tab.c
+	rm parser lex.yy.c y.output y.tab.h y.tab.c
 
 test1 : FORCE parser
 	cat samples/primes.min | ./parser
