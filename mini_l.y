@@ -13,6 +13,65 @@
 	extern int line;
 	extern int pos;
 	FILE * yyin;
+
+
+    /* List of defines for generateInstruction() One for each syntax */
+    #define OP_VAR_DEC 0
+    #define OP_ARR_VAR_DEC 1
+    #define OP_COPY_STATEMENT 2
+    #define OP_ARR_ACCESS_SRC 3 
+    #define OP_ARR_ACCESS_DST 4
+    #define OP_STD_IN 5
+    #define OP_STD_IN_ARR 6
+    #define OP_STD_OUT 7
+    #define OP_STD_OUT_ARR 8
+    #define OP_ADD 9
+    #define OP_SUB 10
+    #define OP_MULT 11
+    #define OP_DIV 12
+    #define OP_MOD 13
+    #define OP_LT 14
+    #define OP_LTE 15
+    #define OP_NEQ 16
+    #define OP_EQ 17
+    #define OP_GTE 18
+    #define OP_GT 19
+    #define OP_OR 20
+    #define OP_AND 21
+    #define OP_NOT 22
+    #define OP_LABEL_DEC 23
+    #define OP_GOTO 24
+    #define OP_IF_GOTO 25
+
+    /*Since theres no bool in c*/
+    #define OP_TRUE 26
+    #define OP_FALSE 27
+
+    /*Nodes store the MIL intermediate code syntax*/
+    typedef struct _Node Node;
+
+    struct _Node
+    {
+        Node* next;
+        char val[256];
+    };
+
+    /*Serve as the head and tail for our program*/
+    Node* programStart = NULL;
+    Node* programEnd = NULL;
+
+    /*Function prototypes*/
+    void generateInstruction(Node *, int, char*, char*, char*);
+    void addInstruction(int, int, char*, char*, char*);
+    void writeToFile(char*);
+
+    /* Helper functions */
+    char * newPredicate();
+    char * newTemp();
+    char * newLabel();
+    int predicate = 0;
+    int temp = 0;
+    int label = 0;
 %}
 
 
@@ -381,4 +440,268 @@ int main(int argc, char **argv)
 void yyerror(const char *msg)
 {
    printf("Line %d %s\n", line, msg);
+}
+
+
+/* Given the instruction and operands, fill the value of newNode with the corresponding syntax */
+void generateInstruction(Node* newNode, int INSTR_VALUE, char* operand1, char* operand2, char* operand3)
+{
+	switch(INSTR_VALUE)
+	{
+		/*Ex: If the instruction is variable declaration*/
+		case(OP_VAR_DEC):
+		{
+			/*Set newNode->val to be ". name", in which name is operand1 */
+			sprintf(newNode->val, ". %s", operand1);
+			break;
+		}
+		case(OP_ARR_VAR_DEC):
+		{
+			sprintf(newNode->val, ".[] %s, %s", operand1, operand2);
+			break;
+		}
+		case(OP_COPY_STATEMENT):
+		{
+			sprintf(newNode->val, "= %s, %s", operand1, operand2);
+			break;
+		}
+		case(OP_ARR_ACCESS_SRC):
+		{
+			sprintf(newNode->val, "=[] %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_ARR_ACCESS_DST):
+		{
+			sprintf(newNode->val, "[]= %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_STD_IN):
+		{
+			sprintf(newNode->val, ".< %s", operand1);
+			break;
+		}
+		case(OP_STD_IN_ARR):
+		{
+			sprintf(newNode->val, ".[]< %s, %s", operand1, operand2);
+			break;
+		}
+		case(OP_STD_OUT):
+		{
+			sprintf(newNode->val, ".> %s", operand1);
+			break;
+		}
+		case(OP_STD_OUT_ARR):
+		{
+			sprintf(newNode->val, ".[]> %s, %s", operand1, operand2);
+			break;
+		}
+		case(OP_ADD):
+		{
+			sprintf(newNode->val, "+ %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_SUB):
+		{
+			sprintf(newNode->val, "- %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_MULT):
+		{
+			sprintf(newNode->val, "* %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_DIV):
+		{
+			sprintf(newNode->val, "/ %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_MOD):
+		{
+			sprintf(newNode->val, "%% %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_LT):
+		{
+			sprintf(newNode->val, "< %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_LTE):
+		{
+			sprintf(newNode->val, "<= %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_NEQ):
+		{
+			sprintf(newNode->val, "!= %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_EQ):
+		{
+			sprintf(newNode->val, "== %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_GTE):
+		{
+			sprintf(newNode->val, ">= %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_GT):
+		{
+			sprintf(newNode->val, "> %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_OR):
+		{
+			sprintf(newNode->val, "|| %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_AND):
+		{
+			sprintf(newNode->val, "&& %s, %s, %s", operand1, operand2, operand3);
+			break;
+		}
+		case(OP_NOT):
+		{
+			sprintf(newNode->val, "! %s, %s", operand1, operand2);
+			break;
+		}
+		case(OP_LABEL_DEC):
+		{
+			sprintf(newNode->val, ": %s", operand1);
+			break;
+		}
+		case(OP_GOTO):
+		{
+			sprintf(newNode->val, ":= %s", operand1);
+			break;
+		}
+		case(OP_IF_GOTO):
+		{
+			sprintf(newNode->val, "?:= %s, %s", operand1, operand2);
+			break;
+		}
+		default:
+		{
+            printf("Unknown Operation");
+			exit(0);
+			break;
+		}
+	}
+}
+
+
+/*	For every semantic in the .y file (from the diagrams & stuff), call addInstruction if it reduces to a correct semantic \
+	EX: \
+	statement:	var assign expression \
+			{	1. If var is an array type (Hint: check in 'var' definition) \
+					-> addInstruction(FALSE, INSTR_ASSIGN_ARRAY, var identifier...) \
+*/
+void addInstruction(int isFront, int INSTRUCTION, char* operator1, char* operator2, char* operator3)
+{
+	/*Pseudocode
+		1. Create empty newNode, use (Node*)(malloc(sizeof(Node)))
+		2. Call generateInstruction to populate newNode with the instruction string
+		3. If programStart == NULL, then programStart = programEnd = newNode & return
+		4. Else if isFront == TRUE, then newNode->next = programStart & programStart = newNode
+		5. Else if isFront == FALSE, then newNode->next = NULL & programEnd->next = newNode & programEnd = newNode
+		6. Return
+	*/
+	
+	/*1 */
+	Node* newNode = (Node*)(malloc(sizeof(Node)));
+		
+	/*2 */
+	generateInstruction(newNode, INSTRUCTION, operator1, operator2, operator3);
+
+	/*3 */
+	if(programStart == NULL)
+	{
+		programStart = newNode;
+		programEnd = newNode;
+		return;
+	}
+
+	/*4 */
+	else if(isFront == OP_TRUE)
+	{
+		newNode->next = programStart;
+		programStart = newNode;
+	}
+
+	/*5 */
+	else if(isFront == OP_FALSE)
+	{
+		newNode->next = NULL;
+		programEnd->next = newNode;
+		programEnd = newNode;
+	}
+
+	/*6 */
+	return;		 
+}
+
+
+/*Make mil file based off of what its name is supposed to be and fill it with the syntax from nodes*/
+void writeToFile(char* fileName)
+{
+	char fileNameBuffer[128];
+	
+	/*Name the .mil file what is stated in the file */
+	sprintf(fileNameBuffer, "%s.mil", fileName);
+
+	/*Open file to write to */
+	FILE *fp = fopen(fileNameBuffer, "w");
+
+	/*Pseudocode
+		1. For each node created in addInstruction, write value to fp using fprintf(fp, "%s\n",)
+		2. fclose(fp)
+	*/
+
+    Node * curr;
+	
+	for(curr = programStart; curr != NULL; curr = curr->next)
+	{
+		fprintf(fp, "%s\n", curr->val);
+	}
+
+	fclose(fp);
+	
+}
+
+
+char * newLabel()
+{
+    /* Output: char * - unique variable identifier of the form L# used in conditional boolean expressions.*/
+    char *ret = (char *)(malloc(8));
+    sprintf(ret, "L%d", label);
+
+    ++label;
+
+    return ret;
+}
+
+
+char * newTemp()
+{
+    /* Output: char * - unique variable identifier of the form t# used in conditional boolean expressions.*/
+
+    char *ret = (char *)(malloc(8));
+    sprintf(ret, "t%d", temp);
+
+    ++temp;
+
+    return ret;
+}
+
+
+char* newPredicate()
+{
+	/* Output: char * - unique variable identifier of the form p# used in conditional boolean expressions */
+
+	char *ret = (char *)(malloc(8));
+	sprintf(ret, "p%d", predicate);
+	
+    ++predicate;
+		
+	return ret;
 }
