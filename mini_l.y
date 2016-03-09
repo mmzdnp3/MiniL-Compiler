@@ -149,13 +149,13 @@
                 {
                     map<string, MiniVal>::iterator it; 
                     for(it=symbol_table.begin(); it!=symbol_table.end();++it){
-                        cout << it->first << " " << it->second.type;
-                        if(it->second.type == 'A'){
-                            cout <<  " " << it->second.size;
-                        }  
-                        cout << endl;
+                        if(it->second.type == 'I')
+                            cout << "\t. " << it->first << endl;
+                        else if(it->second.type == 'A')
+                            cout << "\t.[] " << it->first << ", " << it->second.size << endl;
                     }
-                    printf("input -> program identifier semicolon block end_program\n");
+                    for(int i=0; i<(int)program_vec.size();++i)
+                        cout << program_vec[i] << endl;
                 }
 			;
 
@@ -168,7 +168,7 @@
             
 			
 	block:     
-			declarations   BEGIN_PROGRAM   statements	{printf("block -> declarations   begin_program   statements\n");}
+			declarations   begin_program   statements	{printf("block -> declarations   begin_program   statements\n");}
 			;
 				
 	declarations: 
@@ -281,6 +281,9 @@
                     }
 			| IDENT   L_PAREN   expression   R_PAREN	{printf("var -> identifier l_paren expression r_paren\n");}
 			;
+
+    begin_program:
+            BEGIN_PROGRAM {program_vec.push_back(": START");}
 
 %%
 
