@@ -66,6 +66,7 @@
     #define OP_IF_GOTO 25
 
     /*Function prototypes*/
+    void checkAndInsertDeclaration(string);
     string generateInstruction( int, string, string, string);
     string addInstruction(int, string, string, string);
     void writeToFile(string);
@@ -213,40 +214,8 @@
 			;
 	
 	indentifiers:
-	        IDENT  COMMA	indentifiers
-                {
-                    //Add to vector here, and check if it is already declared in the vector
-                    
-                    string identName = string($1);
-                    
-                    for (int i=0; i<(int)declarations.size(); ++i){
-                        if(declarations[i] == identName){
-                            string errstr = "Multiple Declaration of " + identName;
-                            yyerror(errstr.c_str());
-                            exit(0);
-                        }
-                    }
-                    declarations.push_back(identName);
-                    
-                    printf("indentifiers -> identifier comma identifiers\n");
-                }
-			| IDENT							
-                {
-                    //Add to vector here, and check if it is already declared in the vector
-                    
-                    string identName = string($1);
-
-                    for (int i=0; i<(int)declarations.size(); ++i){
-                        if(declarations[i] == identName){
-                            string errstr = "Multiple Declaration of " + identName;
-                            yyerror(errstr.c_str());
-                            exit(0);
-                        }
-                    }
-                    declarations.push_back(identName);
-
-                    printf("indentifiers -> identifier\n");
-                }
+	        IDENT  COMMA	indentifiers    {checkAndInsertDeclaration(string($1));}
+			| IDENT							{checkAndInsertDeclaration(string($1));}
 			;
 			
 	statement:
@@ -345,6 +314,19 @@ void yyerror(const char *msg)
    printf("Line %d %s\n", line, msg);
 }
 
+
+void checkAndInsertDeclaration(string identName){
+
+    for (int i=0; i<(int)declarations.size(); ++i){
+        if(declarations[i] == identName){
+            string errstr = "Multiple Declaration of " + identName;
+            yyerror(errstr.c_str());
+            exit(0);
+        }
+    }
+    declarations.push_back(identName);
+
+}
 
 /* Given the instruction and operands, fill the value of newNode with the corresponding syntax */
 
