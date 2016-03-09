@@ -30,7 +30,7 @@
             int size;
             
             MiniVal(char type, int size=0)
-            :type(type), size(0){}
+            :type(type), size(size){}
     };
     
     vector<string> program_vec;
@@ -177,38 +177,21 @@
 			;
 			
 	declaration:          
-	        indentifiers   COLON    INTEGER {}
-			| indentifiers   COLON    ARRAY   L_PAREN   NUMBER   R_PAREN   OF  INTEGER
+	        indentifiers   COLON    INTEGER 
                 {
-                /*
-                    cout << "Size is " << declarations.size() << endl; 
-                    for (int i = 0; i<declarations.size(); i++)
-                        cout << declarations.at(i) << endl;
-                    exit(1);
-                    for (int i = 0; i<declarations.size(); ++i){
-                        for(int j = i+1; j<declarations.size(); ++j){
-                            cout << "asdasd Outer " << declarations[i] << endl;
-                            cout << "asdasd Inner " << declarations[j] << endl;
-                            if(declarations[i] == declarations[j]){
-                                string errstr = "Multiple Declaration of " + declarations[i];
-                                yyerror(errstr.c_str());
-                                exit(0);
-                            }
-                        }
-                    }
                     while(!declarations.empty()){
                         string x = declarations.back();
                         declarations.pop_back();
-                        minilval * val = new minilval;
-                        if(isArray>=0) {
-                            val->type = 'A';
-                            val->size = isArray;
-                        }
-                        else {
-                            val->type = 'I';
-                        }
-                        symbol_table.insert(pair<string, MiniVal>(x, *val) );
-                    }*/
+                        symbol_table.insert(pair<string, MiniVal>(x, MiniVal('I')) );
+                    }
+                }
+			| indentifiers   COLON    ARRAY   L_PAREN   NUMBER   R_PAREN   OF  INTEGER
+                {
+                    while(!declarations.empty()){
+                        string x = declarations.back();
+                        declarations.pop_back();
+                        symbol_table.insert(pair<string, MiniVal>(x, MiniVal('A', $5)) );
+                    }
                     printf("declaration -> indentifiers colon optional_array intege\n");
                 }
 			;
