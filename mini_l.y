@@ -213,8 +213,40 @@
 			;
 	
 	indentifiers:
-	        IDENT  COMMA	indentifiers		{printf("indentifiers -> identifier comma identifiers\n");}
-			| IDENT							{printf("indentifiers -> identifier\n");}
+	        IDENT  COMMA	indentifiers
+                {
+                    //Add to vector here, and check if it is already declared in the vector
+                    
+                    string identName = string($1);
+                    
+                    for (int i=0; i<(int)declarations.size(); ++i){
+                        if(declarations[i] == identName){
+                            string errstr = "Multiple Declaration of " + identName;
+                            yyerror(errstr.c_str());
+                            exit(0);
+                        }
+                    }
+                    declarations.push_back(identName);
+                    
+                    printf("indentifiers -> identifier comma identifiers\n");
+                }
+			| IDENT							
+                {
+                    //Add to vector here, and check if it is already declared in the vector
+                    
+                    string identName = string($1);
+
+                    for (int i=0; i<(int)declarations.size(); ++i){
+                        if(declarations[i] == identName){
+                            string errstr = "Multiple Declaration of " + identName;
+                            yyerror(errstr.c_str());
+                            exit(0);
+                        }
+                    }
+                    declarations.push_back(identName);
+
+                    printf("indentifiers -> identifier\n");
+                }
 			;
 			
 	statement:
