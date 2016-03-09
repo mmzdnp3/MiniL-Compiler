@@ -1,0 +1,8 @@
+program small;
+
+n : integer;
+
+beginprogram	## 
+    read n;
+    write n;
+endprogram
