@@ -8,12 +8,32 @@
 %{
 	#include <stdio.h>
 	#include <stdlib.h>
+    #include <map>
+    #include <set>
+    #include <string>
+    #include <vector>
+    #include <stack>
+    #include <iostream>
+    #include <algorithm>
+        
+    using namespace std;
+
 	void yyerror(const char *msg);
 	int yylex();
 	extern int line;
 	extern int pos;
 	extern FILE * yyin;
 
+    typedef struct _minilval{
+        char type;
+        int size;
+    } minilval;
+
+    vector<string> program_vec;
+    map<string, minilval> symbol_table;
+    vector<string> declarations;
+
+    int isArray = -1;
 
     /* List of defines for generateInstruction() One for each syntax */
     #define OP_VAR_DEC 0
@@ -139,7 +159,18 @@
 %%
 			
 	input:
-		    program   identifier   semicolon   block   end_program		{printf("input -> program identifier semicolon block end_program\n");}
+		    program   identifier   semicolon   block   end_program		
+                {
+                    map<string, minilval>::iterator it; 
+                    for(it=symbol_table.begin(); it!=symbol_table.end();++it){
+                        cout << it->first << " " << it->second.type;
+                        if(it->second.type == 'A'){
+                            cout <<  " " << it->second.size;
+                        }  
+                        cout << endl;
+                    }
+                    printf("input -> program identifier semicolon block end_program\n");
+                }
 			;
 			
 	block:     
@@ -152,7 +183,40 @@
 			;
 			
 	declaration:          
-			indentifiers   colon   optional_array   integer	{printf("declaration -> indentifiers colon optional_array integer\n");}
+			indentifiers   colon   optional_array   integer	
+                {
+                /*
+                    cout << "Size is " << declarations.size() << endl; 
+                    for (int i = 0; i<declarations.size(); i++)
+                        cout << declarations.at(i) << endl;
+                    exit(1);
+                    for (int i = 0; i<declarations.size(); ++i){
+                        for(int j = i+1; j<declarations.size(); ++j){
+                            cout << "asdasd Outer " << declarations[i] << endl;
+                            cout << "asdasd Inner " << declarations[j] << endl;
+                            if(declarations[i] == declarations[j]){
+                                string errstr = "Multiple Declaration of " + declarations[i];
+                                yyerror(errstr.c_str());
+                                exit(0);
+                            }
+                        }
+                    }*/
+                    exit(1);
+                    while(!declarations.empty() && declarations.size() > 1){
+                        string x = declarations.back();
+                        declarations.pop_back();
+                        minilval * val = new minilval;
+                        if(isArray>=0) {
+                            val->type = 'A';
+                            val->size = isArray;
+                        }
+                        else {
+                            val->type = 'I';
+                        }
+                        symbol_table.insert(pair<string, minilval>(x, *val) );
+                    }
+                    printf("declaration -> indentifiers colon optional_array intege\n");
+                }
 			;
 	
 	indentifiers:
@@ -161,8 +225,16 @@
 			;
 			
 	optional_array:
-			array   l_paren   number   r_paren   of	{printf("optional_array -> array l_paren number r_paren of\n");}
-			| /* epsilon */							{printf("optional_array -> epsilon\n");}
+			array   l_paren   NUMBER   r_paren   of	
+                {
+                    printf("optional_array -> array l_paren number r_paren of\n");
+                    isArray = $3;
+                }
+			| /* epsilon */							
+                {
+                    isArray = -1;
+                    printf("optional_array -> epsilon\n");
+                }
 			;
 			
 	statement:
@@ -264,11 +336,14 @@
 			;
 			
 	program:                
-			PROGRAM		{printf("program -> PROGRAM\n");}
+			PROGRAM		{}
 			;
 			
 	identifier:
-			IDENT		{printf("identifier -> IDENT (%s)\n", $1);}
+			IDENT	{
+                        declarations.push_back(string($1));
+                        printf("identifier -> IDENT (%s)\n", $1);
+                    }
 			;
 			
 	semicolon:
