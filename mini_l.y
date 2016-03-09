@@ -317,12 +317,10 @@ void yyerror(const char *msg)
 
 void checkAndInsertDeclaration(string identName){
 
-    for (int i=0; i<(int)declarations.size(); ++i){
-        if(declarations[i] == identName){
-            string errstr = "Multiple Declaration of " + identName;
-            yyerror(errstr.c_str());
-            exit(0);
-        }
+    if(find(declarations.begin(), declarations.end(), identName) != declarations.end())  {
+        string errstr = "Multiple Declarations with identifier " + identName;
+        yyerror(errstr.c_str());
+        exit(0);
     }
     declarations.push_back(identName);
 
