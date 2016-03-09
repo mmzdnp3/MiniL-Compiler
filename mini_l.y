@@ -317,7 +317,8 @@ void yyerror(const char *msg)
 
 void checkAndInsertDeclaration(string identName){
 
-    if(find(declarations.begin(), declarations.end(), identName) != declarations.end())  {
+    if( (find(declarations.begin(), declarations.end(), identName) != declarations.end())
+        || (symbol_table.find(identName) != symbol_table.end() )) {
         string errstr = "Multiple Declarations with identifier " + identName;
         yyerror(errstr.c_str());
         exit(0);
