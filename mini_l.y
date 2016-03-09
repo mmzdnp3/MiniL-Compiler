@@ -63,22 +63,18 @@
     #define OP_GOTO 24
     #define OP_IF_GOTO 25
 
-    /*Since theres no bool in c*/
-    #define OP_TRUE 26
-    #define OP_FALSE 27
-
     /*Function prototypes*/
-    //void generateInstruction(Node *, int, char*, char*, char*);
-    //void addInstruction(int, int, char*, char*, char*);
-    //void writeToFile(char*);
+    string generateInstruction( int, string, string, string);
+    string addInstruction(int, string, string, string);
+    void writeToFile(string);
 
     /* Helper functions */
-    //char * newPredicate();
-    //char * newTemp();
-    //char * newLabel();
-    //int predicate = 0;
-    //int temp = 0;
-    //int label = 0;
+    string newPredicate();
+    string newTemp();
+    string newLabel();
+    int predicate = 0;
+    int temp = 0;
+    int label = 0;
 %}
 
 
