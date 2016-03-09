@@ -1,0 +1,12 @@
+program small;
+
+i : integer;
+n : integer;
+n : integer;
+n : integer;
+
+beginprogram	## 
+    read n;
+	n := 2 + n + 1;
+    write n;
+endprogram
