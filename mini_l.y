@@ -12,7 +12,7 @@
 	int yylex();
 	extern int line;
 	extern int pos;
-	FILE * yyin;
+	extern FILE * yyin;
 
 
     /* List of defines for generateInstruction() One for each syntax */

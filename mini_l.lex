@@ -59,7 +59,7 @@ LETTER   [a-zA-Z]
 
 {DIGIT}+       											{yylval.number = atoi(yytext); pos += yyleng; return NUMBER;}
 {LETTER}({LETTER}|{DIGIT}|_)*_							{printf("Error at line %d, column %d: identifier \"%s\" cannot end with an underscore",line, pos, yytext); exit(0);}
-{LETTER}(({LETTER}|{DIGIT}|_)*({LETTER}|{DIGIT}))?		{	yylval.string = malloc(strlen(yytext)+1);
+{LETTER}(({LETTER}|{DIGIT}|_)*({LETTER}|{DIGIT}))?		{	yylval.string = (char *)malloc(strlen(yytext)+1);
 															strcpy(yylval.string,yytext); pos+=yyleng; return IDENT;}
 {DIGIT}+{LETTER}*          								{printf("Error at line %d, column %d: identifier \"%s\" must begin with a letter\n", line, pos, yytext);exit(0);}
 
@@ -72,5 +72,5 @@ LETTER   [a-zA-Z]
 [ \t]+         					{/* ignore whitespaces */; pos += yyleng;}
 "\n"							{line++; pos =0;}
 .              					{printf("Error at line %d, column %d: unrecognized symbol \"%s\"\n", line, pos, yytext);
-									yylval.string = malloc(strlen(yytext)+1);
+									yylval.string = (char *)malloc(strlen(yytext)+1);
 									strcpy(yylval.string,yytext); pos+=yyleng; return UNRECOGNIZED;}
