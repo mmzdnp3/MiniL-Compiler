@@ -24,16 +24,18 @@
 	extern int pos;
 	extern FILE * yyin;
 
-    typedef struct _minilval{
-        char type;
-        int size;
-    } minilval;
-
+    class MiniVal{
+        public:
+            char type;
+            int size;
+            
+            MiniVal(char type, int size=0)
+            :type(type), size(0){}
+    };
+    
     vector<string> program_vec;
-    map<string, minilval> symbol_table;
+    map<string, MiniVal> symbol_table;
     vector<string> declarations;
-
-    int isArray = -1;
 
     /* List of defines for generateInstruction() One for each syntax */
     #define OP_VAR_DEC 0
@@ -144,7 +146,7 @@
 	input:
 		    program_declaration   SEMICOLON   block   END_PROGRAM
                 {
-                    map<string, minilval>::iterator it; 
+                    map<string, MiniVal>::iterator it; 
                     for(it=symbol_table.begin(); it!=symbol_table.end();++it){
                         cout << it->first << " " << it->second.type;
                         if(it->second.type == 'A'){
@@ -159,8 +161,7 @@
     program_declaration: 
             PROGRAM IDENT
                 {
-                    //FIXME
-                    //Add program identifier to symbol table here
+                    symbol_table.insert(pair<string, MiniVal>(string($2), MiniVal('P')) );
                 }
             ;            
             
@@ -193,8 +194,8 @@
                                 exit(0);
                             }
                         }
-                    }*/
-                    while(!declarations.empty() && declarations.size() > 1){
+                    }
+                    while(!declarations.empty()){
                         string x = declarations.back();
                         declarations.pop_back();
                         minilval * val = new minilval;
@@ -205,8 +206,8 @@
                         else {
                             val->type = 'I';
                         }
-                        symbol_table.insert(pair<string, minilval>(x, *val) );
-                    }
+                        symbol_table.insert(pair<string, MiniVal>(x, *val) );
+                    }*/
                     printf("declaration -> indentifiers colon optional_array intege\n");
                 }
 			;
