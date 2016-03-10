@@ -326,6 +326,7 @@
 			| multiplicative_exp    ADD   expression	
 				{
 					string temp = newTemp();
+					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					string s1 = "s1";
 					string s2 = "s2";
 					addInstruction(OP_ADD,temp,s1,s2);
@@ -577,7 +578,7 @@ string newLabel()
 string newTemp()
 {
     char tmp[10];
-    sprintf(tmp, "t%d", label);
+    sprintf(tmp, "t%d", temp);
     string ret = string(tmp);
     ++temp;
     return ret;
@@ -587,7 +588,7 @@ string newTemp()
 string newPredicate()
 {
     char tmp[10];
-    sprintf(tmp, "p%d", label);
+    sprintf(tmp, "p%d", predicate);
     string ret = string(tmp);
     ++predicate;
 	return ret;
