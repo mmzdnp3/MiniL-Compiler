@@ -28,7 +28,6 @@
         public:
             char type;
             int size;
-            
             MiniVal(char type, int size=0)
             :type(type), size(size){}
     };
@@ -202,7 +201,22 @@
 			;
 			
 	statement:
-			var   ASSIGN   expression											{printf("statement -> var assign expression\n");}
+			var   ASSIGN   expression											
+				{
+					map<string, MiniVal>::iterator it;
+					it = symbol_table.find(string($1));
+					/*need to check if array or not*/
+					if(it == symbol_table.end())
+					{
+						string errstr = "Undeclared variable " + string($1);
+						yyerror(errstr.c_str());
+						exit(0);
+					}
+					else
+					{
+						/*print assign value*/
+					}
+				}
 			| IF   bool_exp   THEN   statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
 			| IF   bool_exp   THEN   statements   ELSE statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
 			| WHILE   bool_exp   BEGINLOOP   statements   ENDLOOP 		{printf("statement -> while bool_exp begin_loop statements end_loop\n");}
