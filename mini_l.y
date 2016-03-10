@@ -15,6 +15,7 @@
     #include <stack>
     #include <iostream>
     #include <algorithm>
+    #include <sstream>
         
     using namespace std;
 
@@ -35,6 +36,9 @@
     vector<string> program_vec;
     map<string, MiniVal> symbol_table;
     vector<string> declarations;
+    vector<string> term_stack;
+    
+    bool reading;
 
     /* List of defines for generateInstruction() One for each syntax */
     #define OP_VAR_DEC 0
@@ -140,6 +144,8 @@
 %left MULT DIV MOD
 %left L_PAREN R_PAREN
 
+%type<string> var
+
 
 %%
 			
@@ -204,31 +210,78 @@
 			var   ASSIGN   expression											
 				{
 					map<string, MiniVal>::iterator it;
-					it = symbol_table.find(string($1));
-					/*need to check if array or not*/
+					it = symbol_table.find($1);
 					if(it == symbol_table.end())
 					{
 						string errstr = "Undeclared variable " + string($1);
 						yyerror(errstr.c_str());
 						exit(0);
 					}
-					else
-					{
-						/*print assign value*/
-					}
 				}
 			| IF   bool_exp   THEN   statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
 			| IF   bool_exp   THEN   statements   ELSE statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
 			| WHILE   bool_exp   BEGINLOOP   statements   ENDLOOP 		{printf("statement -> while bool_exp begin_loop statements end_loop\n");}
 			| DO   BEGINLOOP   statements   ENDLOOP   WHILE   bool_exp 		{printf("statement -> do begin_loop statements end_loop while bool_exp\n");}
-			| READ   vars 													{printf("statement -> read vars\n");}
-			| WRITE   vars 													{printf("statement -> write vars\n");}
+			| READ   vars 													
+				{
+					reading = true;
+				}
+			| WRITE   vars 
+				{
+					reading = false;
+				}
 			| CONTINUE 															{printf("statement -> continue\n");}
 			;
 		
 	vars:
-			var    COMMA    vars 	{printf("vars -> var comma vars\n");}
-			| var 						{printf( "vars -> var\n");}
+			var    COMMA    vars 	
+				{
+					map<string, MiniVal>::iterator it;
+					it = symbol_table.find($1);
+					
+					/*need to check if array or not, and access index*/
+					
+					if(it == symbol_table.end())
+					{
+						string errstr = "Undeclared variable " + string($1);
+						yyerror(errstr.c_str());
+						exit(0);
+					}
+					/*If we're reading output .< dst*/
+					if(reading)
+					{
+						addInstruction(OP_STD_IN,string($1),"","");
+					}
+					/*Otherwise we're writing*/
+					else
+					{
+						addInstruction(OP_STD_OUT,string($1),"","");
+					}
+				}
+			| var 
+				{
+					map<string, MiniVal>::iterator it;
+					it = symbol_table.find($1);
+					
+					/*need to check if array or not, and access index*/
+					
+					if(it == symbol_table.end())
+					{
+						string errstr = "Undeclared variable " + string($1);
+						yyerror(errstr.c_str());
+						exit(0);
+					}
+					/*If we're reading output .< dst*/
+					if(reading)
+					{
+						addInstruction(OP_STD_IN,string($1),"","");
+					}
+					/*Otherwise we're writing*/
+					else
+					{
+						addInstruction(OP_STD_OUT,string($1),"","");
+					}
+				}
 			;
 		
 	statements:
@@ -268,7 +321,11 @@
 	
 	expression:
 			multiplicative_exp	                        {printf("expression -> multiplicative_exp multiplicative_exps\n");}
-			| multiplicative_exp    ADD   expression	{printf("expression -> multiplicative_exp multiplicative_exps\n");}
+			| multiplicative_exp    ADD   expression	
+				{
+					string temp = newTemp();
+					/*WHAT TO DO*/
+				}
 			| multiplicative_exp    SUB   expression	{printf("expression -> multiplicative_exp multiplicative_exps\n");}
 			;
 			
@@ -280,8 +337,18 @@
 			;
 			
 	term:
-			var										{printf("term -> var\n");}
-			| NUMBER								{printf("term -> number\n");}
+			var										
+				{
+					term_stack.push_back($1);
+				}
+			| NUMBER								
+				{
+					string num;
+					stringstream ss;
+					ss << $1;
+					num = ss.out;
+					term_stack.push_back(num);
+				}
 			| L_PAREN   expression R_PAREN			{printf("term -> l_paren expression r_paren\n");}
 			| SUB   var 	                			{printf("term -> sub var\n");}
 			| SUB   NUMBER              			{printf("term -> sub number\n");}
@@ -289,11 +356,12 @@
 			;
 			
 	var:
-			IDENT	{
-                        declarations.push_back(string($1));
-                        printf("identifier -> IDENT (%s)\n", $1);
-                    }
-			| IDENT   L_PAREN   expression   R_PAREN	{printf("var -> identifier l_paren expression r_paren\n");}
+			IDENT
+			| IDENT   L_PAREN   expression   R_PAREN
+					{
+						/*Need to evaluate expression for index!!! Somehow keep track of value*/
+						printf("var -> identifier l_paren expression r_paren\n");
+					}
 			;
 
     begin_program:
@@ -311,7 +379,7 @@ int main(int argc, char **argv)
 
 void yyerror(const char *msg)
 {
-   printf("Line %d %s\n", line, msg);
+   printf("**Line %d %s\n", line, msg);
 }
 
 
@@ -341,117 +409,117 @@ string generateInstruction(int INSTR_VALUE, string op1, string op2="", string op
 		case(OP_VAR_DEC):
 		{
 			/*Set instr to be ". name", in which name is operand1 */
-			sprintf(instr, ". %s", operand1);
+			sprintf(instr, "\t. %s", operand1);
 			break;
 		}
 		case(OP_ARR_VAR_DEC):
 		{
-			sprintf(instr, ".[] %s, %s", operand1, operand2);
+			sprintf(instr, "\t.[] %s, %s", operand1, operand2);
 			break;
 		}
 		case(OP_COPY_STATEMENT):
 		{
-			sprintf(instr, "= %s, %s", operand1, operand2);
+			sprintf(instr, "\t= %s, %s", operand1, operand2);
 			break;
 		}
 		case(OP_ARR_ACCESS_SRC):
 		{
-			sprintf(instr, "=[] %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t=[] %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_ARR_ACCESS_DST):
 		{
-			sprintf(instr, "[]= %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t[]= %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_STD_IN):
 		{
-			sprintf(instr, ".< %s", operand1);
+			sprintf(instr, "\t.< %s", operand1);
 			break;
 		}
 		case(OP_STD_IN_ARR):
 		{
-			sprintf(instr, ".[]< %s, %s", operand1, operand2);
+			sprintf(instr, "\t.[]< %s, %s", operand1, operand2);
 			break;
 		}
 		case(OP_STD_OUT):
 		{
-			sprintf(instr, ".> %s", operand1);
+			sprintf(instr, "\t.> %s", operand1);
 			break;
 		}
 		case(OP_STD_OUT_ARR):
 		{
-			sprintf(instr, ".[]> %s, %s", operand1, operand2);
+			sprintf(instr, "\t.[]> %s, %s", operand1, operand2);
 			break;
 		}
 		case(OP_ADD):
 		{
-			sprintf(instr, "+ %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t+ %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_SUB):
 		{
-			sprintf(instr, "- %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t- %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_MULT):
 		{
-			sprintf(instr, "* %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t* %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_DIV):
 		{
-			sprintf(instr, "/ %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t/ %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_MOD):
 		{
-			sprintf(instr, "%% %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t%% %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_LT):
 		{
-			sprintf(instr, "< %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t< %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_LTE):
 		{
-			sprintf(instr, "<= %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t<= %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_NEQ):
 		{
-			sprintf(instr, "!= %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t!= %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_EQ):
 		{
-			sprintf(instr, "== %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t== %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_GTE):
 		{
-			sprintf(instr, ">= %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t>= %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_GT):
 		{
-			sprintf(instr, "> %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t> %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_OR):
 		{
-			sprintf(instr, "|| %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t|| %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_AND):
 		{
-			sprintf(instr, "&& %s, %s, %s", operand1, operand2, operand3);
+			sprintf(instr, "\t&& %s, %s, %s", operand1, operand2, operand3);
 			break;
 		}
 		case(OP_NOT):
 		{
-			sprintf(instr, "! %s, %s", operand1, operand2);
+			sprintf(instr, "\t! %s, %s", operand1, operand2);
 			break;
 		}
 		case(OP_LABEL_DEC):
@@ -461,12 +529,12 @@ string generateInstruction(int INSTR_VALUE, string op1, string op2="", string op
 		}
 		case(OP_GOTO):
 		{
-			sprintf(instr, ":= %s", operand1);
+			sprintf(instr, "\t:= %s", operand1);
 			break;
 		}
 		case(OP_IF_GOTO):
 		{
-			sprintf(instr, "?:= %s, %s", operand1, operand2);
+			sprintf(instr, "\t?:= %s, %s", operand1, operand2);
 			break;
 		}
 		default:
@@ -498,6 +566,7 @@ string newLabel()
     ++label;
     return ret;
 }
+
 
 
 string newTemp()
