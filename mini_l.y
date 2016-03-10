@@ -217,6 +217,8 @@
 						yyerror(errstr.c_str());
 						exit(0);
 					}
+					addInstruction(OP_COPY_STATEMENT,$1,"some temp","");
+					
 				}
 			| IF   bool_exp   THEN   statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
 			| IF   bool_exp   THEN   statements   ELSE statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
@@ -324,6 +326,9 @@
 			| multiplicative_exp    ADD   expression	
 				{
 					string temp = newTemp();
+					string s1 = "s1";
+					string s2 = "s2";
+					addInstruction(OP_ADD,temp,s1,s2);
 					/*WHAT TO DO*/
 				}
 			| multiplicative_exp    SUB   expression	{printf("expression -> multiplicative_exp multiplicative_exps\n");}
