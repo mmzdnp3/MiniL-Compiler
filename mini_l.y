@@ -16,6 +16,7 @@
     #include <iostream>
     #include <algorithm>
     #include <sstream>
+    #include <string.h>
         
     using namespace std;
 
@@ -271,8 +272,8 @@
 			;
 		
 	statements:
-			statement   SEMICOLON	statements		{printf("statements -> statement semicolon statements\n");}
-			| statement   SEMICOLON 					{printf("statements -> statement semicolon\n");}
+			statement   SEMICOLON 					{printf("statements -> statement semicolon\n");}
+			| statements   statement	SEMICOLON		{printf("statements -> statement semicolon statements\n");}
 			;
 	
 	bool_exp:
@@ -308,18 +309,21 @@
 	expression:
 			multiplicative_exp
 				{
-					$$ = $1;
+					$$ = strdup($1);
+					cout << "Reducing mulexp " << $1 << " to exp " << $$ << endl;
 				}
 			| expression    ADD   multiplicative_exp	
 				{
+					cout << "Pre Temp: $1 is " << $1 << endl;
 					string mulexp = $3;
+					string expre = $1;
 					string temp;
-					cout << "Pre Temp: $3 is " << $3 << endl;
+					cout << "Pre Temp: $1 is " << $1 << endl;
 					newTemp(temp);
-					cout << "Pst Temp: $3 is " << $3 << endl;
+					cout << "Pst Temp: $1 is " << $1 << endl;
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_ADD, temp, $1, mulexp);
-					$$ = temp.c_str();
+					$$ = strdup(temp.c_str());
 					cout << "Reducing exp " << $1 << " and mulexp " << $3 << " to exp " << $$ << endl;
 				}
 			| expression    SUB   multiplicative_exp
@@ -329,14 +333,14 @@
 					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_SUB, temp, $1, mulexp);
-					$$ = temp.c_str();
+					$$ = strdup(temp.c_str());
 				}
 			;
 			
 	multiplicative_exp:
 			term   
 				{
-					$$ = $1;
+					$$ = strdup($1);
 					cout << "Reducing term " << $1 << " to mulexp " << $$ << endl;
 				}
 			| multiplicative_exp  MULT  term
@@ -346,7 +350,7 @@
 					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_MULT, temp, $1, mulexp);
-					$$ = temp.c_str();
+					$$ = strdup(temp.c_str());
 				}
 			| multiplicative_exp	DIV   term  
 				{
@@ -355,7 +359,7 @@
 					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_DIV, temp, $1, mulexp);
-					$$ = temp.c_str();
+					$$ = strdup(temp.c_str());
 				}
 			| multiplicative_exp	 MOD   term  
 				{
@@ -364,7 +368,7 @@
 					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_MOD, temp, $1, mulexp);
-					$$ = temp.c_str();
+					$$ = strdup(temp.c_str());
 				}
 			;
 			
@@ -377,10 +381,10 @@
 						newTemp(temp);
 						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $1.name , $1.index);
-						$$ = temp.c_str();
+						$$ = strdup(temp.c_str());
 					}
 					else{
-						$$ = $1.name;
+						$$ = strdup($1.name);
 					}
 				}
 			| NUMBER								
@@ -389,11 +393,11 @@
 					string tmp;
 					ss << $1;
 					tmp = ss.str();
-					$$ = tmp.c_str();
+					$$ = strdup(tmp.c_str());
 				}
 			| L_PAREN   expression R_PAREN			
 				{
-					$$ = $2;
+					$$ = strdup($2);
 				}
 			| SUB   var
 				{
@@ -404,12 +408,12 @@
 						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $2.name , $2.index);
 						addInstruction(OP_SUB, temp, "0" , temp);
-						$$ = temp.c_str();
+						$$ = strdup(temp.c_str());
 					}
 					else
 					{
 						addInstruction(OP_SUB, $2.name, "0" , $2.name);
-						$$= $2.name;
+						$$ = strdup($2.name);
 					}
 				}
 			| SUB   NUMBER
@@ -420,13 +424,13 @@
 					string tmp;
 					ss << t;
 					tmp = ss.str();
-					$$ = tmp.c_str();
+					$$ = strdup(tmp.c_str());
 					
 				}
 			| SUB   L_PAREN   expression R_PAREN
 				{
 					addInstruction(OP_SUB, $3, "0" , $3);
-					$$ = $3;
+					$$ = strdup($3);
 					
 				}
 			;
@@ -651,7 +655,6 @@ void addInstruction(int INSTRUCTION, string operator1, string operator2, string 
     program_vec.push_back(instr);
 	return;		 
 }
-
 
 void newLabel(string & str)
 {
