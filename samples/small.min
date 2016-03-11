@@ -3,11 +3,9 @@ program small;
 m, n : integer;
 
 beginprogram	## 
-    read n, m;
-    while n <= m beginloop
-        if n == 12 then
-            continue;
-        endif;
-	    n := n + 1;
-    endloop;
+  if m<n then
+      m := m + 1;
+  else
+      n := n + 1;
+  endif;
 endprogram

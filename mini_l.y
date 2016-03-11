@@ -265,7 +265,7 @@
                 {
                     string endLabel;
                     newLabel(endLabel);
-                    addInstruction(OP_LABEL_DEC, endLabel, "", "");
+                    addInstruction(OP_GOTO, endLabel, "", "");
                     addInstruction(OP_LABEL_DEC, if_label_stack.top(), "", "");
                     if_label_stack.pop();
                     if_label_stack.push(endLabel);
