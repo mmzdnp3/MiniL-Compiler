@@ -70,7 +70,6 @@
     #define ARRAY_VAR 100
     #define NUMBER_VAR 101
     #define IDENT_VAR 102
-	#define TEMP_VAR 103
 	
     /*Function prototypes*/
     void checkAndInsertDeclaration(string);
@@ -346,15 +345,50 @@
 					ss << $1;
 					tmp = ss.str();
 					$$.name = tmp.c_str();
+					$$.index = NULL;
 				}
 			| L_PAREN   expression R_PAREN			
 				{
 					$$.name = $2;
-					$$.type = TEMP_VAR;
+					$$.type = IDENT_VAR;
+					$$.index = NULL;
 				}
-			| SUB   var 	                			{printf("term -> sub var\n");}
-			| SUB   NUMBER              			{printf("term -> sub number\n");}
-			| SUB   L_PAREN   expression R_PAREN	{printf("term -> sub l_paren expression r_paren\n");}
+			| SUB   var
+				{
+					if($2.type == IDENT_VAR)
+					{
+						addInstruction(OP_SUB, $2.name, 0 , $2.name);
+					}
+					else
+					{
+						string temp = newTemp();
+						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+						addInstruction(OP_ARR_ACCESS_SRC, temp, $2.name , $2.index);
+						addInstruction(OP_SUB, temp, 0 , temp);
+						addInstruction(OP_ARR_ACCESS_DST, $2.name, $2.index , temp);
+					}
+				}
+			| SUB   NUMBER
+				{
+					int t = $2;
+					t = -t;
+					$$.type = NUMBER_VAR;
+					stringstream ss;
+					string tmp;
+					ss << t;
+					tmp = ss.str();
+					$$.name = tmp.c_str();
+					$$.index = NULL;
+					
+				}
+			| SUB   L_PAREN   expression R_PAREN
+				{
+					addInstruction(OP_SUB, $3, 0 , $3);
+					$$.type = IDENT_VAR;
+					$$.name = $3;
+					$$.index = NULL
+					
+				}
 			;
 			
 	var:
@@ -372,7 +406,7 @@
 					}
 					$$.name = $1;
 					$$.type = IDENT_VAR;
-					$$.index = "-1";
+					$$.index = NULL;
 				}
 			| IDENT   L_PAREN   expression   R_PAREN
 					{
