@@ -228,9 +228,7 @@
 	statement:
 			var   ASSIGN   expression											
 				{
-
 					addInstruction(OP_COPY_STATEMENT,string($1.name),"some temp","");
-					
 				}
 			| IF   bool_exp   THEN   statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
 			| IF   bool_exp   THEN   statements   ELSE statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
