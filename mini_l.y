@@ -79,11 +79,9 @@
 	
 
     /* Helper functions */
-    string newPredicate();
+    void newPredicate(string & str);
     void newTemp(string &str);
-    string newLabel();
-    int predicate = 0;
-    int label = 0;
+    void newLabel(string &str);
 %}
 
 
@@ -311,27 +309,14 @@
 			multiplicative_exp
 				{
 					$$ = $1;
-					cout << "Collapsing mult_exp " << $$ << " to expression" << endl;
 				}
 			| expression    ADD   multiplicative_exp	
 				{
-					//cout << "PRE TEMP: Collapsing exp and mult_exp " << $1 << " and " << $3 << " to expression " << $$ << endl;
-					//string mulexp = $3;
-					//cout << "PRE TEMP: $3 is " << $3 << endl;
-					
-					cout << "Pre Temp $3 is " << $3 << endl;
-					cout << "Pre Temp Address of $3 is " << &$3 << endl;
 					string temp;
 					newTemp(temp);
-					cout << "Post Tmp $3 is " << $3 << endl;
-					cout << "Post Temp Address of $3 is " << &$3 << endl;
-					//string tempk = newTemp();
-					//cout << "LiNE 319: TEMP IS " << temp << endl;
-					
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_ADD, temp, $1, $3);
 					$$ = temp.c_str();
-					cout << "Collapsing exp and mult_exp " << $1 << " and " << $3 << " to expression " << $$ << endl;
 				}
 			| expression    SUB   multiplicative_exp
 				{
@@ -347,7 +332,6 @@
 			term   
 				{
 					$$ = $1;
-					cout << "Collapsing term " << $$ << " to mul_exp" << endl;
 				}
 			| term MULT  multiplicative_exp
 				{
@@ -388,12 +372,10 @@
 					}
 					else{
 						$$ = $1.name;
-						cout << "Collapsing var " << $$ << " to term" << endl;
 					}
 				}
 			| NUMBER								
 				{
-					cout << "NUMBER IS " << $1 << endl;
 					stringstream ss;
 					string tmp;
 					ss << $1;
@@ -406,7 +388,6 @@
 				}
 			| SUB   var
 				{
-					cout << "Check one" << endl;
 					if($2.type == ARRAY_VAR)
 					{
 						string temp;
@@ -663,13 +644,15 @@ void addInstruction(int INSTRUCTION, string operator1, string operator2, string 
 }
 
 
-string newLabel()
+void newLabel(string & str)
 {
-    char tmp[10];
-    sprintf(tmp, "L%d", label);
-    string ret = string(tmp);
-    ++label;
-    return ret;
+    static int label_cnt = 0;
+    stringstream ss;
+	string tmp;
+	ss << label_cnt;
+	tmp = ss.str();
+    str = "L" + tmp;
+    ++label_cnt;
 }
 
 
@@ -686,11 +669,13 @@ void newTemp(string & str)
 }
 
 
-string newPredicate()
+void newPredicate(string & str)
 {
-    char tmp[10];
-    sprintf(tmp, "p%d", predicate);
-    string ret = string(tmp);
-    ++predicate;
-	return ret;
+    static int pre_cnt = 0;
+    stringstream ss;
+	string tmp;
+	ss <<  pre_cnt;
+	tmp = ss.str();
+    str = "p" + tmp;
+    ++pre_cnt;
 }
