@@ -505,28 +505,21 @@
 			multiplicative_exp
 				{
 					$$ = strdup($1);
-					//cout << "Reducing mulexp " << $1 << " to exp " << $$ << endl;
 				}
 			| expression    ADD   multiplicative_exp	
 				{
-					//cout << "Pre Temp: $1 is " << $1 << endl;
 					string mulexp = $3;
 					string expre = $1;
 					string temp;
-					//cout << "Pre Temp: $1 is " << $1 << endl;
 					newTemp(temp);
-					//cout << "Pst Temp: $1 is " << $1 << endl;
-					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_ADD, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
-					//cout << "Reducing exp " << $1 << " and mulexp " << $3 << " to exp " << $$ << endl;
 				}
 			| expression    SUB   multiplicative_exp
 				{
 					string mulexp = $3;
 					string temp;
 					newTemp(temp);
-					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_SUB, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 				}
@@ -536,14 +529,12 @@
 			term   
 				{
 					$$ = strdup($1);
-					//cout << "Reducing term " << $1 << " to mulexp " << $$ << endl;
 				}
 			| multiplicative_exp  MULT  term
 				{
 					string mulexp = $3;
 					string temp;
 					newTemp(temp);
-					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_MULT, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 				}
@@ -552,7 +543,6 @@
 					string mulexp = $3;
 					string temp;
 					newTemp(temp);
-					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_DIV, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 				}
@@ -561,7 +551,6 @@
 					string mulexp = $3;					
 					string temp;
 					newTemp(temp);
-					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_MOD, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 				}
@@ -570,13 +559,10 @@
 	term:
 			var										
 				{
-                    //cout << "In term prod var " << $1.name << " type is " << $1.type << endl;
 					if($1.type == ARRAY_VAR)
 					{
-                        //cout << "var type was array var" << endl;
 						string temp;
 						newTemp(temp);
-						//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $1.name , $1.index);
 						$$ = strdup(temp.c_str());
 					}
@@ -602,7 +588,6 @@
 					{
 						string temp;
 						newTemp(temp);
-						//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $2.name , $2.index);
 						addInstruction(OP_SUB, temp, "0" , temp);
 						$$ = strdup(temp.c_str());
@@ -645,21 +630,17 @@
 						exit(0);
 
 					}
-                    //cout << "Setting var " << $1 << " type to an ident var" << endl;
 					$$.name = $1;
 					$$.type = IDENT_VAR;
 					$$.index = NULL;
-                    //cout << "Var "<< $1 << " type is " << $$.type << endl;
 				}
 			| IDENT   L_PAREN   expression   R_PAREN
 				{
                     /*Need to evaluate expression for index!!! Somehow keep track of value*/
                     //printf("var -> identifier l_paren expression r_paren\n");
-                    //cout << "Setting var " << $1 << " type to an array var" << endl;
                     $$.name = $1;
                     $$.type = ARRAY_VAR;
                     $$.index = $3;
-                    //cout << "Var "<< $1 << " type is " << $$.type << endl;
                 }
 			;
 
