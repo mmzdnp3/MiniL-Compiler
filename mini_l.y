@@ -80,10 +80,9 @@
 
     /* Helper functions */
     string newPredicate();
-    string newTemp();
+    void newTemp(string &str);
     string newLabel();
     int predicate = 0;
-    int temp = 0;
     int label = 0;
 %}
 
@@ -309,42 +308,67 @@
 			;
 	
 	expression:
-			multiplicative_exp	                        {printf("expression -> multiplicative_exp multiplicative_exps\n");}
-			| multiplicative_exp    ADD   expression	
+			multiplicative_exp
 				{
-					string temp = newTemp();
-					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
-					string s1 = "s1";
-					string s2 = "s2";
-					addInstruction(OP_ADD,temp,s1,s2);
-					/*WHAT TO DO*/
+					$$ = $1;
+					cout << "Collapsing mult_exp " << $$ << " to expression" << endl;
 				}
-			| multiplicative_exp    SUB   expression	{printf("expression -> multiplicative_exp multiplicative_exps\n");}
+			| expression    ADD   multiplicative_exp	
+				{
+					//cout << "PRE TEMP: Collapsing exp and mult_exp " << $1 << " and " << $3 << " to expression " << $$ << endl;
+					//string mulexp = $3;
+					//cout << "PRE TEMP: $3 is " << $3 << endl;
+					
+					cout << "Pre Temp $3 is " << $3 << endl;
+					cout << "Pre Temp Address of $3 is " << &$3 << endl;
+					string temp;
+					newTemp(temp);
+					cout << "Post Tmp $3 is " << $3 << endl;
+					cout << "Post Temp Address of $3 is " << &$3 << endl;
+					//string tempk = newTemp();
+					//cout << "LiNE 319: TEMP IS " << temp << endl;
+					
+					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					addInstruction(OP_ADD, temp, $1, $3);
+					$$ = temp.c_str();
+					cout << "Collapsing exp and mult_exp " << $1 << " and " << $3 << " to expression " << $$ << endl;
+				}
+			| expression    SUB   multiplicative_exp
+				{
+					string temp;
+					newTemp(temp);
+					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					addInstruction(OP_SUB, temp, $1, $3);
+					$$ = temp.c_str();
+				}
 			;
 			
 	multiplicative_exp:
 			term   
 				{
 					$$ = $1;
+					cout << "Collapsing term " << $$ << " to mul_exp" << endl;
 				}
 			| term MULT  multiplicative_exp
 				{
-					string temp = newTemp();
+					string temp;
+					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_MULT, temp, $1, $3);
 					$$ = temp.c_str();
-					
 				}
 			| term DIV   multiplicative_exp  
 				{
-					string temp = newTemp();
+					string temp;
+					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_DIV, temp, $1, $3);
 					$$ = temp.c_str();
 				}
 			| term MOD   multiplicative_exp  
 				{
-					string temp = newTemp();
+					string temp;
+					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_MOD, temp, $1, $3);
 					$$ = temp.c_str();
@@ -356,22 +380,25 @@
 				{
 					if($1.type == ARRAY_VAR)
 					{
-						string temp = newTemp();
+						string temp;
+						newTemp(temp);
 						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $1.name , $1.index);
 						$$ = temp.c_str();
 					}
 					else{
-						$$= $1.name;
+						$$ = $1.name;
+						cout << "Collapsing var " << $$ << " to term" << endl;
 					}
 				}
 			| NUMBER								
 				{
+					cout << "NUMBER IS " << $1 << endl;
 					stringstream ss;
 					string tmp;
 					ss << $1;
 					tmp = ss.str();
-					$$= tmp.c_str();
+					$$ = tmp.c_str();
 				}
 			| L_PAREN   expression R_PAREN			
 				{
@@ -382,7 +409,8 @@
 					cout << "Check one" << endl;
 					if($2.type == ARRAY_VAR)
 					{
-						string temp = newTemp();
+						string temp;
+						newTemp(temp);
 						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $2.name , $2.index);
 						addInstruction(OP_SUB, temp, "0" , temp);
@@ -646,13 +674,15 @@ string newLabel()
 
 
 
-string newTemp()
+void newTemp(string & str)
 {
-    char tmp[10];
-    sprintf(tmp, "t%d", temp);
-    string ret = string(tmp);
-    ++temp;
-    return ret;
+    static int tmp_cnt = 0;
+    stringstream ss;
+	string tmp;
+	ss << tmp_cnt;
+	tmp = ss.str();
+    str = "t" + tmp;
+    ++tmp_cnt;
 }
 
 

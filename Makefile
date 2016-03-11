@@ -1,5 +1,5 @@
 compiler:  lex.yy.c y.tab.c
-	g++ -o compiler y.tab.c lex.yy.c -lfl
+	g++ -g -o compiler y.tab.c lex.yy.c -lfl
 
 parser : lex.yy.c
 	bison -v -d --file-prefix=y parser_mini_l.y
