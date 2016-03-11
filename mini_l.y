@@ -247,7 +247,13 @@
 	statement:
 			var   ASSIGN   expression											
 				{
-					addInstruction(OP_COPY_STATEMENT,string($1.name), $3,"");
+					if($1.type == ARRAY_VAR)
+					{
+						addInstruction(OP_ARR_ACCESS_DST, $1.name, $1.index , $3);
+					}
+					else{
+					    addInstruction(OP_COPY_STATEMENT,string($1.name), $3,"");
+					}
 				}
 			| if_then_part  statements   ENDIF
                 {
@@ -564,8 +570,10 @@
 	term:
 			var										
 				{
+                    //cout << "In term prod var " << $1.name << " type is " << $1.type << endl;
 					if($1.type == ARRAY_VAR)
 					{
+                        //cout << "var type was array var" << endl;
 						string temp;
 						newTemp(temp);
 						//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
@@ -637,18 +645,22 @@
 						exit(0);
 
 					}
+                    //cout << "Setting var " << $1 << " type to an ident var" << endl;
 					$$.name = $1;
 					$$.type = IDENT_VAR;
 					$$.index = NULL;
+                    //cout << "Var "<< $1 << " type is " << $$.type << endl;
 				}
 			| IDENT   L_PAREN   expression   R_PAREN
-					{
-						/*Need to evaluate expression for index!!! Somehow keep track of value*/
-						//printf("var -> identifier l_paren expression r_paren\n");
-						$$.name = $1;
-						$$.type = ARRAY_VAR;
-						$$.index = $3;
-					}
+				{
+                    /*Need to evaluate expression for index!!! Somehow keep track of value*/
+                    //printf("var -> identifier l_paren expression r_paren\n");
+                    //cout << "Setting var " << $1 << " type to an array var" << endl;
+                    $$.name = $1;
+                    $$.type = ARRAY_VAR;
+                    $$.index = $3;
+                    //cout << "Var "<< $1 << " type is " << $$.type << endl;
+                }
 			;
 
     begin_program:
