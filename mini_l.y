@@ -158,9 +158,7 @@
 %left L_PAREN R_PAREN
 
 %type<attributes> var
-%type<const_string> expression
-%type<const_string> multiplicative_exp
-%type<const_string> term
+%type<const_string> expression multiplicative_exp term comp bool_exp relation_exp;
 
 %%
 			
@@ -287,23 +285,121 @@
 			;
 	
 	relation_exp:
-			expression	comp	expression 			{printf("relation_exp -> expression comp expression\n");}
-			| TRUE									{printf("relation_exp -> true\n");}
-			| FALSE 								{printf("relation_exp -> false\n");}
-			| L_PAREN	bool_exp	R_PAREN 		{printf("relation_exp -> l_paren bool_exp r_paren\n");}
-			| NOT expression	comp	expression	{printf("relation_exp -> not expression comp expression\n");}
-			| NOT TRUE 								{printf("relation_exp -> not true\n");}
-			| NOT FALSE 							{printf("relation_exp -> not false\n"); }
-			| NOT L_PAREN   bool_exp   R_PAREN 		{printf("relation_exp -> not l_paren bool_exp r_paren\n");}
+			expression	comp	expression 			
+				{
+					string predicate;
+					newPredicate(predicate);
+					if(strcmp($2, "EQ")==0)
+					{
+						addInstruction(OP_EQ, predicate, $1, $3);
+					}
+					if(strcmp($2, "NEQ")==0)
+					{
+						addInstruction(OP_NEQ, predicate, $1, $3);
+					}
+					if(strcmp($2, "LT")==0)
+					{
+						addInstruction(OP_LT, predicate, $1, $3);
+					}
+					if(strcmp($2, "GT")==0)
+					{
+						addInstruction(OP_GT, predicate, $1, $3);
+					}
+					if(strcmp($2, "LTE")==0)
+					{
+						addInstruction(OP_LTE, predicate, $1, $3);
+					}
+					if(strcmp($2, "GTE")==0)
+					{
+						addInstruction(OP_GTE, predicate, $1, $3);
+					}
+					$$ = strdup(predicate.c_str());
+				}
+			| TRUE									
+				{
+					$$ = strdup("1");
+				}
+			| FALSE 				
+				{
+					$$ = strdup("0");
+				}
+			| L_PAREN	bool_exp	R_PAREN 		
+				{
+					$$ = strdup($2);
+				}
+			| NOT expression	comp	expression
+				{
+					string predicate;
+					newPredicate(predicate);
+					addInstruction(OP_NOT, predicate, $2, "");
+					if(strcmp($3, "EQ")==0)
+					{
+						addInstruction(OP_EQ, predicate, predicate, $4);
+					}
+					if(strcmp($3, "NEQ")==0)
+					{
+						addInstruction(OP_NEQ, predicate, predicate, $4);
+					}
+					if(strcmp($3, "LT")==0)
+					{
+						addInstruction(OP_LT, predicate, predicate, $4);
+					}
+					if(strcmp($3, "GT")==0)
+					{
+						addInstruction(OP_GT, predicate, predicate, $4);
+					}
+					if(strcmp($3, "LTE")==0)
+					{
+						addInstruction(OP_LTE, predicate, predicate, $4);
+					}
+					if(strcmp($3, "GTE")==0)
+					{
+						addInstruction(OP_GTE, predicate, predicate, $4);
+					}
+					$$ = strdup(predicate.c_str());
+				}
+			| NOT TRUE 
+				{
+					$$ = strdup("0");
+				}
+			| NOT FALSE 							
+				{
+					$$ = strdup("1");
+				}
+			| NOT L_PAREN   bool_exp   R_PAREN 		
+				{
+					string predicate;
+					newPredicate(predicate);
+					addInstruction(OP_NOT, predicate, $3, "");
+					$$ = strdup(predicate.c_str());
+				}
 			;
 			
 	comp:
-			EQ 					{printf("comp -> equal_to\n");}
-			| NEQ 				{printf("comp -> not_equal_to\n");}
-			| LT 				{printf("comp -> less_than\n");}
-			| GT 				{printf("comp -> greater_than\n");}
-			| LTE 	            {printf("comp -> less_than_or_equal_to\n");}
-			| GTE	            {printf("comp -> greater_than_or_equal_to\n");}
+			EQ 					
+				{
+					$$ = strdup("EQ");
+				}
+			| NEQ 				
+				{
+					$$ = strdup("NEQ");
+				}
+			| LT 				
+				{
+					$$ = strdup("LT");
+				}
+			| GT 				
+				{
+					$$ = strdup("GT");
+				}
+			| LTE 	            
+				{
+					$$ = strdup("LTE");
+				}
+			| GTE	            
+				{
+					$$ = strdup("GTE");
+				}
 			;
 	
 	expression:

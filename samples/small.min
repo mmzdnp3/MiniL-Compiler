@@ -5,6 +5,9 @@ a : array(1000) of integer;
 
 beginprogram	## 
     read n;
+    if not (n > 1) then
+		m := 1;
+	endif;
 	n := 2 + (n + 1);
     write n, m;
 endprogram
