@@ -186,18 +186,22 @@
             
 			
 	block:     
-			declarations   begin_program   statements	{printf("block -> declarations   begin_program   statements\n");}
+			declarations   begin_program   statements
+				{}
 			;
 				
 	declarations: 
-	        declaration   SEMICOLON declarations		{printf("declarations -> declaration semicolon declarations\n");}
-			| declaration   SEMICOLON						{printf("declarations -> declaration semicolon\n");}
+	        declaration   SEMICOLON declarations
+				{}
+			| declaration   SEMICOLON
+				{}
 			;
 			
 	declaration:          
 	        indentifiers   COLON    INTEGER 
                 {
-                    while(!declarations.empty()){
+                    while(!declarations.empty())
+                    {
                         string x = declarations.back();
                         declarations.pop_back();
                         symbol_table.insert(pair<string, MiniVal>(x, MiniVal('I')) );
@@ -205,18 +209,24 @@
                 }
 			| indentifiers   COLON    ARRAY   L_PAREN   NUMBER   R_PAREN   OF  INTEGER
                 {
-                    while(!declarations.empty()){
+                    while(!declarations.empty())
+                    {
                         string x = declarations.back();
                         declarations.pop_back();
                         symbol_table.insert(pair<string, MiniVal>(x, MiniVal('A', $5)) );
                     }
-                    printf("declaration -> indentifiers colon optional_array intege\n");
                 }
 			;
 	
 	indentifiers:
-	        IDENT  COMMA	indentifiers    {checkAndInsertDeclaration(string($1));}
-			| IDENT							{checkAndInsertDeclaration(string($1));}
+	        IDENT  COMMA	indentifiers
+				{
+					checkAndInsertDeclaration(string($1));
+				}
+			| IDENT
+				{
+					checkAndInsertDeclaration(string($1));
+				}
 			;
 			
 	statement:
@@ -246,7 +256,8 @@
 						addInstruction(OP_STD_OUT,var_name,"","");
 					}
 				}
-			| CONTINUE 															{printf("statement -> continue\n");}
+			| CONTINUE
+				{printf("statement -> continue\n");}
 			;
 		
 	vars:
