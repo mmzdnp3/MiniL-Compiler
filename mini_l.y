@@ -78,9 +78,6 @@
     void writeToFile(string);
 	
 
-
-
-
     /* Helper functions */
     string newPredicate();
     string newTemp();
@@ -94,12 +91,13 @@
 %union{
 	int number;
 	char* string;
+	const char* const_string;
 	
 	struct attributes
 	{
 		const char* name;
 		char type;
-		char* index;
+		const char* index;
 	};
 
 	
@@ -162,8 +160,9 @@
 %left L_PAREN R_PAREN
 
 %type<attributes> var
-%type<string> expression
-%type<attributes> term
+%type<const_string> expression
+%type<const_string> multiplicative_exp
+%type<const_string> term
 
 %%
 			
@@ -227,7 +226,7 @@
 	statement:
 			var   ASSIGN   expression											
 				{
-					addInstruction(OP_COPY_STATEMENT,string($1.name),"some temp","");
+					addInstruction(OP_COPY_STATEMENT,string($1.name), $3,"");
 				}
 			| IF   bool_exp   THEN   statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
 			| IF   bool_exp   THEN   statements   ELSE statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
@@ -324,69 +323,92 @@
 			;
 			
 	multiplicative_exp:
-			term   {printf("multiplicative_exp -> term terms\n");}
-			| term MULT  multiplicative_exp	{printf("terms -> multiply term terms\n");}
-			| term DIV   multiplicative_exp  {printf("terms -> divide term terms \n");}
-			| term MOD   multiplicative_exp  {printf("terms -> mod term terms\n");}
+			term   
+				{
+					$$ = $1;
+				}
+			| term MULT  multiplicative_exp
+				{
+					string temp = newTemp();
+					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					addInstruction(OP_MULT, temp, $1, $3);
+					$$ = temp.c_str();
+					
+				}
+			| term DIV   multiplicative_exp  
+				{
+					string temp = newTemp();
+					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					addInstruction(OP_DIV, temp, $1, $3);
+					$$ = temp.c_str();
+				}
+			| term MOD   multiplicative_exp  
+				{
+					string temp = newTemp();
+					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					addInstruction(OP_MOD, temp, $1, $3);
+					$$ = temp.c_str();
+				}
 			;
 			
 	term:
 			var										
 				{
-					$$.type = $1.type;
-					$$.name = $1.name;
-					$$.index = $1.index;
+					if($1.type == ARRAY_VAR)
+					{
+						string temp = newTemp();
+						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+						addInstruction(OP_ARR_ACCESS_SRC, temp, $1.name , $1.index);
+						$$ = temp.c_str();
+					}
+					else{
+						$$= $1.name;
+					}
 				}
 			| NUMBER								
 				{
-					$$.type = NUMBER_VAR;
 					stringstream ss;
 					string tmp;
 					ss << $1;
 					tmp = ss.str();
-					$$.name = tmp.c_str();
-					$$.index = NULL;
+					$$= tmp.c_str();
 				}
 			| L_PAREN   expression R_PAREN			
 				{
-					$$.name = $2;
-					$$.type = IDENT_VAR;
-					$$.index = NULL;
+					$$ = $2;
 				}
 			| SUB   var
 				{
-					if($2.type == IDENT_VAR)
-					{
-						addInstruction(OP_SUB, $2.name, 0 , $2.name);
-					}
-					else
+					cout << "Check one" << endl;
+					if($2.type == ARRAY_VAR)
 					{
 						string temp = newTemp();
 						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $2.name , $2.index);
-						addInstruction(OP_SUB, temp, 0 , temp);
-						addInstruction(OP_ARR_ACCESS_DST, $2.name, $2.index , temp);
+						addInstruction(OP_SUB, temp, "0" , temp);
+						$$ = temp.c_str();
+					}
+					else
+					{
+						addInstruction(OP_SUB, $2.name, "0" , $2.name);
+						$$= $2.name;
 					}
 				}
 			| SUB   NUMBER
 				{
 					int t = $2;
 					t = -t;
-					$$.type = NUMBER_VAR;
 					stringstream ss;
 					string tmp;
 					ss << t;
 					tmp = ss.str();
-					$$.name = tmp.c_str();
-					$$.index = NULL;
+					$$ = tmp.c_str();
 					
 				}
 			| SUB   L_PAREN   expression R_PAREN
 				{
-					addInstruction(OP_SUB, $3, 0 , $3);
-					$$.type = IDENT_VAR;
-					$$.name = $3;
-					$$.index = NULL
+					addInstruction(OP_SUB, $3, "0" , $3);
+					$$ = $3;
 					
 				}
 			;
