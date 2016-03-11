@@ -37,8 +37,7 @@
     vector<string> program_vec;
     map<string, MiniVal> symbol_table;
     vector<string> declarations;
-    
-    bool reading;
+    vector<string> var_vector;
 
     /* List of defines for generateInstruction() One for each syntax */
     #define OP_VAR_DEC 0
@@ -231,11 +230,21 @@
 			| DO   BEGINLOOP   statements   ENDLOOP   WHILE   bool_exp 		{printf("statement -> do begin_loop statements end_loop while bool_exp\n");}
 			| READ   vars 													
 				{
-					reading = true;
+					while(!var_vector.empty())
+					{
+						string var_name = var_vector.back();
+						var_vector.pop_back();
+						addInstruction(OP_STD_IN,var_name,"","");
+					}
 				}
 			| WRITE   vars 
 				{
-					reading = false;
+					while(!var_vector.empty())
+					{
+						string var_name = var_vector.back();
+						var_vector.pop_back();
+						addInstruction(OP_STD_OUT,var_name,"","");
+					}
 				}
 			| CONTINUE 															{printf("statement -> continue\n");}
 			;
@@ -243,36 +252,19 @@
 	vars:
 			var    COMMA    vars 	
 				{
-					
-					/*If we're reading output .< dst*/
-					if(reading)
-					{
-						addInstruction(OP_STD_IN,string($1.name),"","");
-					}
-					/*Otherwise we're writing*/
-					else
-					{
-						addInstruction(OP_STD_OUT,string($1.name),"","");
-					}
+					var_vector.push_back(string($1.name));
 				}
 			| var 
 				{
-					/*If we're reading output .< dst*/
-					if(reading)
-					{
-						addInstruction(OP_STD_IN,$1.name,"","");
-					}
-					/*Otherwise we're writing*/
-					else
-					{
-						addInstruction(OP_STD_OUT,$1.name,"","");
-					}
+					var_vector.push_back(string($1.name));
 				}
 			;
 		
 	statements:
-			statement   SEMICOLON 					{printf("statements -> statement semicolon\n");}
-			| statements   statement	SEMICOLON		{printf("statements -> statement semicolon statements\n");}
+			statement   SEMICOLON 				
+				{}
+			| statements   statement	SEMICOLON		
+				{}
 			;
 	
 	bool_exp:
@@ -285,7 +277,7 @@
 					string predicate;
 					newPredicate(predicate);
 					addInstruction(OP_OR, predicate, $1, $3);
-					$$ = strdup(predicate);
+					$$ = strdup(predicate.c_str());
 				}
 			;
 			
@@ -299,7 +291,7 @@
 					string predicate;
 					newPredicate(predicate);
 					addInstruction(OP_AND, predicate, $1, $3);
-					$$ = strdup(predicate);
+					$$ = strdup(predicate.c_str());
 				}
 			;
 	

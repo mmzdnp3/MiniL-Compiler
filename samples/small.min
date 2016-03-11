@@ -1,10 +1,10 @@
 program small;
 
-n, m : integer;
+n, m, b, c: integer;
 a : array(1000) of integer;
 
 beginprogram	## 
-    read n;
+    read n, m, b, c;
     if not (n > 1) then
 		m := 1;
 	endif;
