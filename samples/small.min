@@ -6,6 +6,7 @@ program small;
   t : array (20) of integer;
 
 beginprogram	## 
-    read t(k-1);
+    ##read t(k-1);
     write t(k-1);
+    continue;
 endprogram

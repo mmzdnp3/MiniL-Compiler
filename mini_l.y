@@ -364,7 +364,14 @@
 				}
 			| CONTINUE
 				{
-                    addInstruction(OP_GOTO, loop_label_stack.top(), "", "");
+                    if(loop_label_stack.size()>0)
+                        addInstruction(OP_GOTO, loop_label_stack.top(), "", "");
+                    else
+                    {
+						string errstr = "Trying to use continue outside a loop";
+						yyerror(errstr.c_str());
+						exit(0);
+                    }
                 }
 			;
 		
