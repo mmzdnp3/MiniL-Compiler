@@ -1,14 +1,13 @@
 program small;
 
-a : array(1000) of integer;	## prime candidates array
-i, j : integer;
-n : integer;
+m, n : integer;
 
 beginprogram	## 
-    i := 2;
-    while i <= n beginloop
-	    a(i) := 0;
-	    a := 0;
-	    i := i + 1;
+    read n, m;
+    while n <= m beginloop
+        if n == 12 then
+            continue;
+        endif;
+	    n := n + 1;
     endloop;
 endprogram

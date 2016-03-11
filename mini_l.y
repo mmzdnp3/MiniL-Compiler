@@ -38,7 +38,8 @@
     map<string, MiniVal> symbol_table;
     vector<string> declarations;
     vector<string> var_vector;
-    stack<string> label_stack;
+    stack<string> if_label_stack;
+    stack<string> loop_label_stack;
 
     /* List of defines for generateInstruction() One for each syntax */
     #define OP_VAR_DEC 0
@@ -240,7 +241,7 @@
                     addInstruction(OP_IF_GOTO, trueLabel, $2, "");
                     addInstruction(OP_GOTO, falseLabel, "", "");
                     addInstruction(OP_LABEL_DEC, trueLabel, "", "");
-                    label_stack.push(falseLabel);
+                    if_label_stack.push(falseLabel);
                 }  
             ;
 			
@@ -257,22 +258,22 @@
 				}
 			| if_then_part  statements   ENDIF
                 {
-                    addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
-                    label_stack.pop();
+                    addInstruction(OP_LABEL_DEC, if_label_stack.top(), "", "");
+                    if_label_stack.pop();
                 }
 			| if_then_part  statements  ELSE
                 {
                     string endLabel;
                     newLabel(endLabel);
                     addInstruction(OP_LABEL_DEC, endLabel, "", "");
-                    addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
-                    label_stack.pop();
-                    label_stack.push(endLabel);
+                    addInstruction(OP_LABEL_DEC, if_label_stack.top(), "", "");
+                    if_label_stack.pop();
+                    if_label_stack.push(endLabel);
                 } 
                 statements   ENDIF 	
                 {
-                    addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
-                    label_stack.pop();
+                    addInstruction(OP_LABEL_DEC, if_label_stack.top(), "", "");
+                    if_label_stack.pop();
                 }
 		    
             | WHILE
@@ -280,7 +281,7 @@
                     string loopLabel;
                     newLabel(loopLabel);
                     addInstruction(OP_LABEL_DEC, loopLabel, "", "");
-                    label_stack.push(loopLabel);
+                    loop_label_stack.push(loopLabel);
                 }   
                 bool_exp 
                 {
@@ -291,29 +292,29 @@
                     addInstruction(OP_IF_GOTO, trueLabel, $3, "");
                     addInstruction(OP_GOTO, falseLabel, "", "");
                     addInstruction(OP_LABEL_DEC, trueLabel, "", "");
-                    string loopLabel = label_stack.top();
-                    label_stack.pop();
-                    label_stack.push(falseLabel);
-                    label_stack.push(loopLabel);
+                    string loopLabel = loop_label_stack.top();
+                    loop_label_stack.pop();
+                    loop_label_stack.push(falseLabel);
+                    loop_label_stack.push(loopLabel);
                 }  
                 BEGINLOOP   statements   ENDLOOP 
                 {
-                    addInstruction(OP_GOTO, label_stack.top(), "", "");
-                    label_stack.pop();
-                    addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
-                    label_stack.pop();
+                    addInstruction(OP_GOTO, loop_label_stack.top(), "", "");
+                    loop_label_stack.pop();
+                    addInstruction(OP_LABEL_DEC, loop_label_stack.top(), "", "");
+                    loop_label_stack.pop();
                 }
 			| DO 
                 {
                     string loopLabel;
                     newLabel(loopLabel);
                     addInstruction(OP_LABEL_DEC, loopLabel, "", "");
-                    label_stack.push(loopLabel);
+                    loop_label_stack.push(loopLabel);
                 }  
                 BEGINLOOP   statements   ENDLOOP   WHILE    bool_exp 		
                 {
-                    addInstruction(OP_IF_GOTO, label_stack.top(), $7, "");
-                    label_stack.pop();
+                    addInstruction(OP_IF_GOTO, loop_label_stack.top(), $7, "");
+                    loop_label_stack.pop();
                 }
 			| READ   vars 													
 				{
@@ -334,7 +335,9 @@
 					}
 				}
 			| CONTINUE
-				{printf("statement -> continue\n");}
+				{
+                    addInstruction(OP_GOTO, loop_label_stack.top(), "", "");
+                }
 			;
 		
 	vars:
