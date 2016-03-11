@@ -1,6 +1,6 @@
 /*
 *	CS 152
-*	Project Phase 2
+*	Project Phase 3
 *	Ikk Anmol Singh Hundal  <861134450>
 *	Chwan-Hao Tung 			<861052182>
 */
@@ -49,6 +49,7 @@
     vector<MiniVar> var_vector;
     stack<string> if_label_stack;
     stack<string> loop_label_stack;
+    bool errorFlag = false;
 
     /* List of defines for generateInstruction() One for each syntax */
     #define OP_VAR_DEC 0
@@ -176,15 +177,19 @@
 	input:
 		    program_declaration   SEMICOLON   block   END_PROGRAM
                 {
-                    map<string, MiniVal>::iterator it; 
-                    for(it=symbol_table.begin(); it!=symbol_table.end();++it){
-                        if(it->second.type == 'I')
-                            cout << "\t. " << it->first << endl;
-                        else if(it->second.type == 'A')
-                            cout << "\t.[] " << it->first << ", " << it->second.size << endl;
+                    if(errorFlag==false)
+                    {
+                        map<string, MiniVal>::iterator it; 
+                        for(it=symbol_table.begin(); it!=symbol_table.end();++it)
+                        {
+                            if(it->second.type == 'I')
+                                cout << "\t. " << it->first << endl;
+                            else if(it->second.type == 'A')
+                                cout << "\t.[] " << it->first << ", " << it->second.size << endl;
+                        }
+                        for(int i=0; i<(int)program_vec.size();++i)
+                            cout << program_vec[i] << endl;
                     }
-                    for(int i=0; i<(int)program_vec.size();++i)
-                        cout << program_vec[i] << endl;
                 }
 			;
 
@@ -355,11 +360,6 @@
 						    addInstruction(OP_STD_OUT, myvar.name,"","");
                         }
 						var_vector.pop_back();
-                    /*
-						string var_name = var_vector.back().first;
-						var_vector.pop_back();
-						addInstruction(OP_STD_OUT,var_name,"","");
-                        */
 					}
 				}
 			| CONTINUE
@@ -370,7 +370,6 @@
                     {
 						string errstr = "Trying to use continue outside a loop";
 						yyerror(errstr.c_str());
-						exit(0);
                     }
                 }
 			;
@@ -672,15 +671,13 @@
 					{
 						string errstr = "Undeclared variable " + string($1);
 						yyerror(errstr.c_str());
-						exit(0);
 					}
                     else
                     {
 					    /*Check if var is an array or not*/
                         if(it->second.type == 'A'){
-						    string errstr = "Trying to use array " + string($1) + " as a Regular ";
+						    string errstr = "Trying to use array " + string($1) + " as a regular variable without index.";
 						    yyerror(errstr.c_str());
-						    exit(0);
                         }
                     }
 
@@ -698,7 +695,6 @@
 					{
 						string errstr = "Undeclared variable " + string($1);
 						yyerror(errstr.c_str());
-						exit(0);
 					}
                     else
                     {
@@ -706,7 +702,6 @@
                         if(it->second.type != 'A'){
 						    string errstr = "Trying to use regular " + string($1) + " as an Array ";
 						    yyerror(errstr.c_str());
-						    exit(0);
                         }
                     }
 
@@ -731,7 +726,8 @@ int main(int argc, char **argv)
 
 void yyerror(const char *msg)
 {
-   printf("**Line %d %s\n", line, msg);
+    printf("**Error: Line %d %s\n", line, msg);
+    errorFlag = true;
 }
 
 
@@ -741,7 +737,6 @@ void checkAndInsertDeclaration(string identName){
         || (symbol_table.find(identName) != symbol_table.end() )) {
         string errstr = "Multiple Declarations with identifier " + identName;
         yyerror(errstr.c_str());
-        exit(0);
     }
     declarations.push_back(identName);
 

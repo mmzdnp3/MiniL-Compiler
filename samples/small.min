@@ -2,11 +2,19 @@ program small;
 
   m : integer;
   n : integer;
+  m : integer;
   i, j, k: integer;
   t : array (20) of integer;
 
-beginprogram	## 
-    ##read t(k-1);
-    write t(k-1);
+beginprogram
+    g := 2;
+    read t(k-1);
+    n := 0;
+    if n==0 then
+        if n==0 then
+            write n;
+        endif;
+    endif;    
+    write t;
     continue;
 endprogram
