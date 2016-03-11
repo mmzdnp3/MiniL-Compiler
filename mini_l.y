@@ -276,8 +276,17 @@
 			;
 	
 	bool_exp:
-			relation_and_exp 	{printf("bool_exp -> relation_and_exp relation_and_exps\n");}
-			| bool_exp	OR  relation_and_exp 	{printf("bool_exp -> relation_and_exp relation_and_exps\n");}
+			relation_and_exp
+				{
+					$$ = strdup($1);
+				}
+			| bool_exp	OR  relation_and_exp
+				{
+					string predicate;
+					newPredicate(predicate);
+					addInstruction(OP_OR, predicate, $1, $3);
+					$$ = strdup(predicate);
+				}
 			;
 			
 	relation_and_exp:
