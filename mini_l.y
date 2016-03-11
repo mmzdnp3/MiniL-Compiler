@@ -34,10 +34,19 @@
             :type(type), size(size){}
     };
     
+    class MiniVar{
+        public:
+            string name;
+            char type;
+            string index;
+            MiniVar(string name, char type, string index="")
+            :name(name), type(type), index(index){}
+    };
+
     vector<string> program_vec;
     map<string, MiniVal> symbol_table;
     vector<string> declarations;
-    vector<string> var_vector;
+    vector<MiniVar> var_vector;
     stack<string> if_label_stack;
     stack<string> loop_label_stack;
 
@@ -320,18 +329,37 @@
 				{
 					while(!var_vector.empty())
 					{
-						string var_name = var_vector.back();
+						MiniVar myvar = var_vector.back();
+                        if(myvar.type == 'A')
+                        {
+                            addInstruction(OP_STD_IN_ARR, myvar.name, myvar.index ,"" );
+                        }
+                        else
+                        {
+						    addInstruction(OP_STD_IN, myvar.name,"","");
+                        }
 						var_vector.pop_back();
-						addInstruction(OP_STD_IN,var_name,"","");
 					}
 				}
 			| WRITE   vars 
 				{
 					while(!var_vector.empty())
 					{
-						string var_name = var_vector.back();
+						MiniVar myvar = var_vector.back();
+                        if(myvar.type == 'A')
+                        {
+                            addInstruction(OP_STD_OUT_ARR, myvar.name, myvar.index ,"" );
+                        }
+                        else
+                        {
+						    addInstruction(OP_STD_OUT, myvar.name,"","");
+                        }
+						var_vector.pop_back();
+                    /*
+						string var_name = var_vector.back().first;
 						var_vector.pop_back();
 						addInstruction(OP_STD_OUT,var_name,"","");
+                        */
 					}
 				}
 			| CONTINUE
@@ -343,11 +371,17 @@
 	vars:
 			var    COMMA    vars 	
 				{
-					var_vector.push_back(string($1.name));
+					if($1.type == ARRAY_VAR)
+					    var_vector.push_back(MiniVar(string($1.name),'A', string($1.index)));
+                    else
+					    var_vector.push_back(MiniVar(string($1.name),'I', ""));
 				}
 			| var 
 				{
-					var_vector.push_back(string($1.name));
+					if($1.type == ARRAY_VAR)
+					    var_vector.push_back(MiniVar(string($1.name),'A', string($1.index)));
+                    else
+					    var_vector.push_back(MiniVar(string($1.name),'I', ""));
 				}
 			;
 		

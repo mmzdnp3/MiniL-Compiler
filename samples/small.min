@@ -1,11 +1,11 @@
 program small;
 
-m, n : integer;
+  m : integer;
+  n : integer;
+  i, j, k: integer;
+  t : array (20) of integer;
 
 beginprogram	## 
-  if m<n then
-      m := m + 1;
-  else
-      n := n + 1;
-  endif;
+    read t(k-1);
+    write t(k-1);
 endprogram
