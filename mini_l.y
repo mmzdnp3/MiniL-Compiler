@@ -158,7 +158,8 @@
 %left L_PAREN R_PAREN
 
 %type<attributes> var
-%type<const_string> expression multiplicative_exp term comp bool_exp relation_exp;
+%type<const_string> expression multiplicative_exp term comp bool_exp relation_exp
+					relation_and_exp;
 
 %%
 			
@@ -280,8 +281,17 @@
 			;
 			
 	relation_and_exp:
-			relation_exp    {printf("relation_and_exp -> relation_exp relation_exps\n");}
-			| relation_and_exp  AND relation_exp 	{printf("relation_and_exp -> relation_exp relation_exps\n");}
+			relation_exp
+				{
+					$$ = strdup($1);
+				}
+			| relation_and_exp  AND relation_exp 	
+				{
+					string predicate;
+					newPredicate(predicate);
+					addInstruction(OP_AND, predicate, $1, $3);
+					$$ = strdup(predicate);
+				}
 			;
 	
 	relation_exp:
