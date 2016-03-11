@@ -4,7 +4,7 @@ n, m: integer;
 a : array(1000) of integer;
 
 beginprogram	## 
-    while n > m beginloop
-	    n := n - 1;
-    endloop;
+    do beginloop
+	    n := n + 1;
+    endloop while n > m;
 endprogram

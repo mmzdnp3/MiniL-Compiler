@@ -297,7 +297,18 @@
                     addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
                     label_stack.pop();
                 }
-			| DO   BEGINLOOP   statements   ENDLOOP   WHILE   bool_exp 		{printf("statement -> do begin_loop statements end_loop while bool_exp\n");}
+			| DO 
+                {
+                    string loopLabel;
+                    newLabel(loopLabel);
+                    addInstruction(OP_LABEL_DEC, loopLabel, "", "");
+                    label_stack.push(loopLabel);
+                }  
+                BEGINLOOP   statements   ENDLOOP   WHILE    bool_exp 		
+                {
+                    addInstruction(OP_IF_GOTO, label_stack.top(), $7, "");
+                    label_stack.pop();
+                }
 			| READ   vars 													
 				{
 					while(!var_vector.empty())
