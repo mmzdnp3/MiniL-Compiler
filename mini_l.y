@@ -510,7 +510,7 @@
 					cout << "Pre Temp: $1 is " << $1 << endl;
 					newTemp(temp);
 					cout << "Pst Temp: $1 is " << $1 << endl;
-					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_ADD, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 					cout << "Reducing exp " << $1 << " and mulexp " << $3 << " to exp " << $$ << endl;
@@ -520,7 +520,7 @@
 					string mulexp = $3;
 					string temp;
 					newTemp(temp);
-					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_SUB, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 				}
@@ -537,7 +537,7 @@
 					string mulexp = $3;
 					string temp;
 					newTemp(temp);
-					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_MULT, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 				}
@@ -546,7 +546,7 @@
 					string mulexp = $3;
 					string temp;
 					newTemp(temp);
-					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_DIV, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 				}
@@ -555,7 +555,7 @@
 					string mulexp = $3;					
 					string temp;
 					newTemp(temp);
-					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_MOD, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
 				}
@@ -568,7 +568,7 @@
 					{
 						string temp;
 						newTemp(temp);
-						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+						//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $1.name , $1.index);
 						$$ = strdup(temp.c_str());
 					}
@@ -594,7 +594,7 @@
 					{
 						string temp;
 						newTemp(temp);
-						symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
+						//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 						addInstruction(OP_ARR_ACCESS_SRC, temp, $2.name , $2.index);
 						addInstruction(OP_SUB, temp, "0" , temp);
 						$$ = strdup(temp.c_str());
@@ -866,6 +866,7 @@ void newTemp(string & str)
 	ss << tmp_cnt;
 	tmp = ss.str();
     str = "t" + tmp;
+	symbol_table.insert(pair<string,MiniVal>(str, MiniVal('I')));
     ++tmp_cnt;
 }
 
@@ -878,5 +879,6 @@ void newPredicate(string & str)
 	ss <<  pre_cnt;
 	tmp = ss.str();
     str = "p" + tmp;
+	symbol_table.insert(pair<string,MiniVal>(str, MiniVal('I')));
     ++pre_cnt;
 }
