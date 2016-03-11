@@ -277,12 +277,12 @@
 	
 	bool_exp:
 			relation_and_exp 	{printf("bool_exp -> relation_and_exp relation_and_exps\n");}
-			| relation_and_exp	OR  bool_exp 	{printf("bool_exp -> relation_and_exp relation_and_exps\n");}
+			| bool_exp	OR  relation_and_exp 	{printf("bool_exp -> relation_and_exp relation_and_exps\n");}
 			;
 			
 	relation_and_exp:
 			relation_exp    {printf("relation_and_exp -> relation_exp relation_exps\n");}
-			| relation_exp  AND relation_and_exp 	{printf("relation_and_exp -> relation_exp relation_exps\n");}
+			| relation_and_exp  AND relation_exp 	{printf("relation_and_exp -> relation_exp relation_exps\n");}
 			;
 	
 	relation_exp:
@@ -312,18 +312,23 @@
 				}
 			| expression    ADD   multiplicative_exp	
 				{
+					string mulexp = $3;
 					string temp;
+					cout << "Pre Temp: $3 is " << $3 << endl;
 					newTemp(temp);
+					cout << "Pst Temp: $3 is " << $3 << endl;
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
-					addInstruction(OP_ADD, temp, $1, $3);
+					addInstruction(OP_ADD, temp, $1, mulexp);
 					$$ = temp.c_str();
+					cout << "Reducing exp " << $1 << " and mulexp " << $3 << " to exp " << $$ << endl;
 				}
 			| expression    SUB   multiplicative_exp
 				{
+					string mulexp = $3;
 					string temp;
 					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
-					addInstruction(OP_SUB, temp, $1, $3);
+					addInstruction(OP_SUB, temp, $1, mulexp);
 					$$ = temp.c_str();
 				}
 			;
@@ -332,29 +337,33 @@
 			term   
 				{
 					$$ = $1;
+					cout << "Reducing term " << $1 << " to mulexp " << $$ << endl;
 				}
-			| term MULT  multiplicative_exp
+			| multiplicative_exp  MULT  term
 				{
+					string mulexp = $3;
 					string temp;
 					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
-					addInstruction(OP_MULT, temp, $1, $3);
+					addInstruction(OP_MULT, temp, $1, mulexp);
 					$$ = temp.c_str();
 				}
-			| term DIV   multiplicative_exp  
+			| multiplicative_exp	DIV   term  
 				{
+					string mulexp = $3;
 					string temp;
 					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
-					addInstruction(OP_DIV, temp, $1, $3);
+					addInstruction(OP_DIV, temp, $1, mulexp);
 					$$ = temp.c_str();
 				}
-			| term MOD   multiplicative_exp  
+			| multiplicative_exp	 MOD   term  
 				{
+					string mulexp = $3;					
 					string temp;
 					newTemp(temp);
 					symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
-					addInstruction(OP_MOD, temp, $1, $3);
+					addInstruction(OP_MOD, temp, $1, mulexp);
 					$$ = temp.c_str();
 				}
 			;
