@@ -36,7 +36,6 @@
     vector<string> program_vec;
     map<string, MiniVal> symbol_table;
     vector<string> declarations;
-    vector<string> term_stack;
     
     bool reading;
 
@@ -67,12 +66,21 @@
     #define OP_LABEL_DEC 23
     #define OP_GOTO 24
     #define OP_IF_GOTO 25
-
+    
+    #define ARRAY_VAR 100
+    #define NUMBER_VAR 101
+    #define IDENT_VAR 102
+	#define TEMP_VAR 103
+	
     /*Function prototypes*/
     void checkAndInsertDeclaration(string);
     string generateInstruction( int, string, string, string);
     void addInstruction(int, string, string, string);
     void writeToFile(string);
+	
+
+
+
 
     /* Helper functions */
     string newPredicate();
@@ -87,6 +95,16 @@
 %union{
 	int number;
 	char* string;
+	
+	struct attributes
+	{
+		const char* name;
+		char type;
+		char* index;
+	};
+
+	
+	struct attributes attributes;
 }
 
 
@@ -144,8 +162,9 @@
 %left MULT DIV MOD
 %left L_PAREN R_PAREN
 
-%type<string> var
-
+%type<attributes> var
+%type<string> expression
+%type<attributes> term
 
 %%
 			
@@ -209,15 +228,8 @@
 	statement:
 			var   ASSIGN   expression											
 				{
-					map<string, MiniVal>::iterator it;
-					it = symbol_table.find($1);
-					if(it == symbol_table.end())
-					{
-						string errstr = "Undeclared variable " + string($1);
-						yyerror(errstr.c_str());
-						exit(0);
-					}
-					addInstruction(OP_COPY_STATEMENT,$1,"some temp","");
+
+					addInstruction(OP_COPY_STATEMENT,string($1.name),"some temp","");
 					
 				}
 			| IF   bool_exp   THEN   statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
@@ -238,50 +250,29 @@
 	vars:
 			var    COMMA    vars 	
 				{
-					map<string, MiniVal>::iterator it;
-					it = symbol_table.find($1);
 					
-					/*need to check if array or not, and access index*/
-					
-					if(it == symbol_table.end())
-					{
-						string errstr = "Undeclared variable " + string($1);
-						yyerror(errstr.c_str());
-						exit(0);
-					}
 					/*If we're reading output .< dst*/
 					if(reading)
 					{
-						addInstruction(OP_STD_IN,string($1),"","");
+						addInstruction(OP_STD_IN,string($1.name),"","");
 					}
 					/*Otherwise we're writing*/
 					else
 					{
-						addInstruction(OP_STD_OUT,string($1),"","");
+						addInstruction(OP_STD_OUT,string($1.name),"","");
 					}
 				}
 			| var 
 				{
-					map<string, MiniVal>::iterator it;
-					it = symbol_table.find($1);
-					
-					/*need to check if array or not, and access index*/
-					
-					if(it == symbol_table.end())
-					{
-						string errstr = "Undeclared variable " + string($1);
-						yyerror(errstr.c_str());
-						exit(0);
-					}
 					/*If we're reading output .< dst*/
 					if(reading)
 					{
-						addInstruction(OP_STD_IN,string($1),"","");
+						addInstruction(OP_STD_IN,$1.name,"","");
 					}
 					/*Otherwise we're writing*/
 					else
 					{
-						addInstruction(OP_STD_OUT,string($1),"","");
+						addInstruction(OP_STD_OUT,$1.name,"","");
 					}
 				}
 			;
@@ -345,17 +336,24 @@
 	term:
 			var										
 				{
-					term_stack.push_back($1);
+					$$.type = $1.type;
+					$$.name = $1.name;
+					$$.index = $1.index;
 				}
 			| NUMBER								
 				{
-					string num;
+					$$.type = NUMBER_VAR;
 					stringstream ss;
+					string tmp;
 					ss << $1;
-					num = ss.out;
-					term_stack.push_back(num);
+					tmp = ss.str();
+					$$.name = tmp.c_str();
 				}
-			| L_PAREN   expression R_PAREN			{printf("term -> l_paren expression r_paren\n");}
+			| L_PAREN   expression R_PAREN			
+				{
+					$$.name = $2;
+					$$.type = TEMP_VAR;
+				}
 			| SUB   var 	                			{printf("term -> sub var\n");}
 			| SUB   NUMBER              			{printf("term -> sub number\n");}
 			| SUB   L_PAREN   expression R_PAREN	{printf("term -> sub l_paren expression r_paren\n");}
@@ -363,10 +361,29 @@
 			
 	var:
 			IDENT
+				{
+					map<string, MiniVal>::iterator it;
+					it = symbol_table.find(string($1));
+					/*need to check if array or not, and access index*/
+					if(it == symbol_table.end())
+					{
+						string errstr = "Undeclared variable " + string($1);
+						yyerror(errstr.c_str());
+						exit(0);
+
+					}
+					$$.name = $1;
+					$$.type = IDENT_VAR;
+					$$.index = "-1";
+				}
 			| IDENT   L_PAREN   expression   R_PAREN
 					{
 						/*Need to evaluate expression for index!!! Somehow keep track of value*/
 						printf("var -> identifier l_paren expression r_paren\n");
+					
+						$$.name = $1;
+						$$.type = ARRAY_VAR;
+						$$.index = $3;
 					}
 			;
 
