@@ -629,8 +629,16 @@
 						string errstr = "Undeclared variable " + string($1);
 						yyerror(errstr.c_str());
 						exit(0);
-
 					}
+                    else
+                    {
+					    /*Check if var is an array or not*/
+                        if(it->second.type == 'A'){
+						    string errstr = "Trying to use array " + string($1) + " as a Regular ";
+						    yyerror(errstr.c_str());
+						    exit(0);
+                        }
+                    }
 
 					$$.name = $1;
 					$$.type = IDENT_VAR;
@@ -647,8 +655,16 @@
 						string errstr = "Undeclared variable " + string($1);
 						yyerror(errstr.c_str());
 						exit(0);
-
 					}
+                    else
+                    {
+					    /*Check if var is an array or not*/
+                        if(it->second.type != 'A'){
+						    string errstr = "Trying to use regular " + string($1) + " as an Array ";
+						    yyerror(errstr.c_str());
+						    exit(0);
+                        }
+                    }
 
                     $$.name = $1;
                     $$.type = ARRAY_VAR;

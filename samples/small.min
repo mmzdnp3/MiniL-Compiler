@@ -7,7 +7,8 @@ n : integer;
 beginprogram	## 
     i := 2;
     while i <= n beginloop
-	    b(i) := 0;
+	    a(i) := 0;
+	    a := 0;
 	    i := i + 1;
     endloop;
 endprogram
