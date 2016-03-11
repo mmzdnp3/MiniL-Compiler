@@ -499,21 +499,21 @@
 			multiplicative_exp
 				{
 					$$ = strdup($1);
-					cout << "Reducing mulexp " << $1 << " to exp " << $$ << endl;
+					//cout << "Reducing mulexp " << $1 << " to exp " << $$ << endl;
 				}
 			| expression    ADD   multiplicative_exp	
 				{
-					cout << "Pre Temp: $1 is " << $1 << endl;
+					//cout << "Pre Temp: $1 is " << $1 << endl;
 					string mulexp = $3;
 					string expre = $1;
 					string temp;
-					cout << "Pre Temp: $1 is " << $1 << endl;
+					//cout << "Pre Temp: $1 is " << $1 << endl;
 					newTemp(temp);
-					cout << "Pst Temp: $1 is " << $1 << endl;
+					//cout << "Pst Temp: $1 is " << $1 << endl;
 					//symbol_table.insert(pair<string,MiniVal>(temp, MiniVal('I')));
 					addInstruction(OP_ADD, temp, $1, mulexp);
 					$$ = strdup(temp.c_str());
-					cout << "Reducing exp " << $1 << " and mulexp " << $3 << " to exp " << $$ << endl;
+					//cout << "Reducing exp " << $1 << " and mulexp " << $3 << " to exp " << $$ << endl;
 				}
 			| expression    SUB   multiplicative_exp
 				{
@@ -530,7 +530,7 @@
 			term   
 				{
 					$$ = strdup($1);
-					cout << "Reducing term " << $1 << " to mulexp " << $$ << endl;
+					//cout << "Reducing term " << $1 << " to mulexp " << $$ << endl;
 				}
 			| multiplicative_exp  MULT  term
 				{
@@ -644,8 +644,7 @@
 			| IDENT   L_PAREN   expression   R_PAREN
 					{
 						/*Need to evaluate expression for index!!! Somehow keep track of value*/
-						printf("var -> identifier l_paren expression r_paren\n");
-					
+						//printf("var -> identifier l_paren expression r_paren\n");
 						$$.name = $1;
 						$$.type = ARRAY_VAR;
 						$$.index = $3;
