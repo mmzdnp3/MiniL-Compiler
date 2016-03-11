@@ -269,7 +269,34 @@
                     label_stack.pop();
                 }
 		    
-            | WHILE   bool_exp   BEGINLOOP   statements   ENDLOOP 		{printf("statement -> while bool_exp begin_loop statements end_loop\n");}
+            | WHILE
+                {
+                    string loopLabel;
+                    newLabel(loopLabel);
+                    addInstruction(OP_LABEL_DEC, loopLabel, "", "");
+                    label_stack.push(loopLabel);
+                }   
+                bool_exp 
+                {
+                    string trueLabel;
+                    string falseLabel;
+                    newLabel(trueLabel);
+                    newLabel(falseLabel);
+                    addInstruction(OP_IF_GOTO, trueLabel, $3, "");
+                    addInstruction(OP_GOTO, falseLabel, "", "");
+                    addInstruction(OP_LABEL_DEC, trueLabel, "", "");
+                    string loopLabel = label_stack.top();
+                    label_stack.pop();
+                    label_stack.push(falseLabel);
+                    label_stack.push(loopLabel);
+                }  
+                BEGINLOOP   statements   ENDLOOP 
+                {
+                    addInstruction(OP_GOTO, label_stack.top(), "", "");
+                    label_stack.pop();
+                    addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
+                    label_stack.pop();
+                }
 			| DO   BEGINLOOP   statements   ENDLOOP   WHILE   bool_exp 		{printf("statement -> do begin_loop statements end_loop while bool_exp\n");}
 			| READ   vars 													
 				{

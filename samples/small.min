@@ -4,11 +4,7 @@ n, m: integer;
 a : array(1000) of integer;
 
 beginprogram	## 
-    if (n > 1) then
-		m := 1;
-        n := 2;
-    else
-        m := 2;
-        n := 5;
-	endif;
+    while n > m beginloop
+	    n := n - 1;
+    endloop;
 endprogram
