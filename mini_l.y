@@ -38,6 +38,7 @@
     map<string, MiniVal> symbol_table;
     vector<string> declarations;
     vector<string> var_vector;
+    stack<string> label_stack;
 
     /* List of defines for generateInstruction() One for each syntax */
     #define OP_VAR_DEC 0
@@ -228,15 +229,47 @@
 					checkAndInsertDeclaration(string($1));
 				}
 			;
+
+    if_then_part:
+            IF bool_exp THEN
+                {
+                    string trueLabel;
+                    string falseLabel;
+                    newLabel(trueLabel);
+                    newLabel(falseLabel);
+                    addInstruction(OP_IF_GOTO, trueLabel, $2, "");
+                    addInstruction(OP_GOTO, falseLabel, "", "");
+                    addInstruction(OP_LABEL_DEC, trueLabel, "", "");
+                    label_stack.push(falseLabel);
+                }  
+            ;
 			
 	statement:
 			var   ASSIGN   expression											
 				{
 					addInstruction(OP_COPY_STATEMENT,string($1.name), $3,"");
 				}
-			| IF   bool_exp   THEN   statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
-			| IF   bool_exp   THEN   statements   ELSE statements   ENDIF 	{printf("statement -> if bool_exp then statements optional_else end_if\n");}
-			| WHILE   bool_exp   BEGINLOOP   statements   ENDLOOP 		{printf("statement -> while bool_exp begin_loop statements end_loop\n");}
+			| if_then_part  statements   ENDIF
+                {
+                    addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
+                    label_stack.pop();
+                }
+			| if_then_part  statements  ELSE
+                {
+                    string endLabel;
+                    newLabel(endLabel);
+                    addInstruction(OP_LABEL_DEC, endLabel, "", "");
+                    addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
+                    label_stack.pop();
+                    label_stack.push(endLabel);
+                } 
+                statements   ENDIF 	
+                {
+                    addInstruction(OP_LABEL_DEC, label_stack.top(), "", "");
+                    label_stack.pop();
+                }
+		    
+            | WHILE   bool_exp   BEGINLOOP   statements   ENDLOOP 		{printf("statement -> while bool_exp begin_loop statements end_loop\n");}
 			| DO   BEGINLOOP   statements   ENDLOOP   WHILE   bool_exp 		{printf("statement -> do begin_loop statements end_loop while bool_exp\n");}
 			| READ   vars 													
 				{

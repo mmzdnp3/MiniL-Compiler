@@ -1,13 +1,14 @@
 program small;
 
-n, m, b, c: integer;
+n, m: integer;
 a : array(1000) of integer;
 
 beginprogram	## 
-    read n, m, b, c;
-    if not (n > 1) then
+    if (n > 1) then
 		m := 1;
+        n := 2;
+    else
+        m := 2;
+        n := 5;
 	endif;
-	n := 2 + (n + 1);
-    write n, m;
 endprogram
