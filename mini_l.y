@@ -622,7 +622,8 @@
 				{
 					map<string, MiniVal>::iterator it;
 					it = symbol_table.find(string($1));
-					/*need to check if array or not, and access index*/
+
+					/*Check if var declared or not*/
 					if(it == symbol_table.end())
 					{
 						string errstr = "Undeclared variable " + string($1);
@@ -630,14 +631,25 @@
 						exit(0);
 
 					}
+
 					$$.name = $1;
 					$$.type = IDENT_VAR;
 					$$.index = NULL;
 				}
 			| IDENT   L_PAREN   expression   R_PAREN
 				{
-                    /*Need to evaluate expression for index!!! Somehow keep track of value*/
-                    //printf("var -> identifier l_paren expression r_paren\n");
+					map<string, MiniVal>::iterator it;
+					it = symbol_table.find(string($1));
+
+					/*Check if var declared or not*/
+					if(it == symbol_table.end())
+					{
+						string errstr = "Undeclared variable " + string($1);
+						yyerror(errstr.c_str());
+						exit(0);
+
+					}
+
                     $$.name = $1;
                     $$.type = ARRAY_VAR;
                     $$.index = $3;
